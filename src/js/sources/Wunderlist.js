@@ -20,64 +20,51 @@ class Wunderlist extends Component {
     };
   }
 
-  displayTasks() {
-    this.getLists();
+  componentDidMount() {
+    this.displayTasks();
   }
 
-  getLists() {
+  displayTasks() {
     wunderlistAPI
       .getLists()
       .then(response => {
+        return response;
+      })
+      .then(response => {
         const listsData = JSON.parse(response.body);
 
-        this.setState({ listsData });
-      })
-      .then(() => {
-        this.getTasks();
+        for (let i = 0; i < listsData.length; i++) {
+          const listData = listsData[i];
+
+          wunderlistAPI
+            .getTasks(listData.id)
+            .then(response => {
+              const listTasksData = JSON.parse(response.body);
+
+              // Adds each task to the array
+              let tasksData = this.state.tasksData || [];
+              for (let i = 0; i < listTasksData.length; i++) {
+                const listTaskData = listTasksData[i];
+                tasksData.push(listTaskData);
+              }
+
+              // Sorts the list of tasks by latest
+              tasksData = tasksData.sort(function(a, b) {
+                return b.created_at.localeCompare(a.created_at);
+              });
+
+              // TODO: Add code to get only items from a certain timestamp
+
+              this.setState({ tasksData });
+            })
+            .catch(error => {
+              console.log(error);
+            });
+        }
       })
       .catch(error => {
         console.log(error);
       });
-  }
-
-  getTasks() {
-    if (!this.state.listsData) {
-      this.getLists();
-      return;
-    }
-
-    for (let i = 0; i < this.state.listsData.length; i++) {
-      const listData = this.state.listsData[i];
-
-      wunderlistAPI
-        .getTasks(listData.id)
-        .then(response => {
-          const listTasksData = JSON.parse(response.body);
-
-          // Adds each task to the array
-          let tasksData = this.state.tasksData || [];
-          for (let i = 0; i < listTasksData.length; i++) {
-            const listTaskData = listTasksData[i];
-            tasksData.push(listTaskData);
-          }
-
-          // Sorts the list of tasks by latest
-          tasksData = tasksData.sort(function(a, b) {
-            return b.created_at.localeCompare(a.created_at);
-          });
-
-          // TODO: Add code to get only items from a certain timestamp
-
-          this.setState({ tasksData });
-        })
-        .catch(error => {
-          console.log(error);
-        });
-    }
-  }
-
-  componentDidMount() {
-    this.displayTasks();
   }
 
   render() {
