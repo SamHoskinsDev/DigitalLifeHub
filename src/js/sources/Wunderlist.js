@@ -1,7 +1,4 @@
 import React, { Component } from "react";
-import "../../css/wunderlist.scss";
-//var request = require("request");
-//var WunderlistSDK = require("wunderlist");
 var WunderlistAPI = require("wunderlist-api");
 
 const clientId = "9f849690dd28219bded5";
@@ -11,18 +8,6 @@ const wunderlistAPI = new WunderlistAPI({
   clientId: clientId,
   accessToken: accessToken
 });
-
-/*
-const redirectUrl = "http://localhost:3000/wunderlist_api";
-const randomString =
-  Math.random()
-    .toString(36)
-    .substring(2, 15) +
-  Math.random()
-    .toString(36)
-    .substring(2, 15);
-const authorizationUrl = `https://www.wunderlist.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUrl}&state=${randomString}`;
-*/
 
 class Wunderlist extends Component {
   constructor(props) {
@@ -36,10 +21,7 @@ class Wunderlist extends Component {
   }
 
   displayTasks() {
-    if (!this.state.tasksData) {
-      this.getTasks();
-      return;
-    }
+    this.getLists();
   }
 
   getLists() {
@@ -87,8 +69,6 @@ class Wunderlist extends Component {
           // TODO: Add code to get only items from a certain timestamp
 
           this.setState({ tasksData });
-
-          //console.log(this.state);
         })
         .catch(error => {
           console.log(error);
@@ -102,7 +82,7 @@ class Wunderlist extends Component {
 
   render() {
     return (
-      <div className="hubs__hub hub__wunderlist">
+      <div className="events events--wunderlist">
         <h2>Wunderlist</h2>
         <div className="wunderlist__lists">
           Recent tasks: <Tasks tasks={this.state.tasksData} />
@@ -115,7 +95,7 @@ class Wunderlist extends Component {
 class Tasks extends Component {
   render() {
     return (
-      <ul>
+      <ul className="events">
         {this.props.tasks &&
           this.props.tasks.map((task, index) => (
             <Task key={index} task={task} />
@@ -127,7 +107,11 @@ class Tasks extends Component {
 
 class Task extends Component {
   render() {
-    return <li className="lists__list">{this.props.task.title} </li>;
+    return (
+      <li className="events__event events__event--wunderlist">
+        {this.props.task.title}{" "}
+      </li>
+    );
   }
 }
 

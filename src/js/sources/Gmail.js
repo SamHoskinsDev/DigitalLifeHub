@@ -1,9 +1,8 @@
 import React from "react";
-import "../../css/gmail.scss";
 
 function Gmail() {
   return (
-    <div className="hubs__hub hub__gmail">
+    <div className="events events--gmail">
       <h2>Gmail</h2>
     </div>
   );
