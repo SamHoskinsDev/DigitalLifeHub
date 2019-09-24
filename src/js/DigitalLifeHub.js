@@ -81,6 +81,9 @@ class DigitalLifeHub extends Component {
       )
     );
 
+    // TODO: Add a generic and reliable way to pull tasks from a "source"/"service" (eg Wunderlist, Gmail, etc)
+    //const tasks = Wunderlist.getTasks();
+
     // TODO: Get Wunderlist "Events"
     events.push(
       new EventItem(

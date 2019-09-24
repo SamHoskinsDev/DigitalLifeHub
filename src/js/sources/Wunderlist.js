@@ -66,7 +66,6 @@ class Wunderlist extends Component {
         console.log(error);
       });
   }
-
   render() {
     return (
       <div className="events events--wunderlist">
