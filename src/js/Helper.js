@@ -13,3 +13,11 @@ export function toDashedLower(string) {
 export function generateUniqueId() {
   return uuidv1();
 }
+
+export function hash(string) {
+  return string
+    .split("")
+    .map(v => v.charCodeAt(0))
+    .reduce((a, v) => (a + ((a << 7) + (a << 3))) ^ v)
+    .toString(16);
+}

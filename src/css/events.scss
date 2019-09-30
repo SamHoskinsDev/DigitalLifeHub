@@ -30,8 +30,19 @@
     width: $event-source-icon-width;
   }
 
-  &__title {
+  &__details {
     flex: 1;
+  }
+
+  &__title {
+    width: 100%;
+    font-weight: bold;
+    display: block;
+  }
+
+  &__content {
+    width: 100%;
+    display: block;
   }
 
   &__date {

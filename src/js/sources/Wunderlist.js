@@ -1,4 +1,8 @@
 import React, { Component } from "react";
+import { EventItem } from "../DigitalLifeHub";
+import * as Helper from "../Helper";
+
+var Sugar = require("sugar");
 var WunderlistAPI = require("wunderlist-api");
 
 const clientId = "9f849690dd28219bded5";
@@ -9,7 +13,7 @@ const wunderlistAPI = new WunderlistAPI({
   accessToken: accessToken
 });
 
-class Wunderlist extends Component {
+export class Wunderlist extends Component {
   constructor(props) {
     super(props);
 
@@ -24,48 +28,11 @@ class Wunderlist extends Component {
     this.displayTasks();
   }
 
-  displayTasks() {
-    wunderlistAPI
-      .getLists()
-      .then(response => {
-        return response;
-      })
-      .then(response => {
-        const listsData = JSON.parse(response.body);
-
-        for (let i = 0; i < listsData.length; i++) {
-          const listData = listsData[i];
-
-          wunderlistAPI
-            .getTasks(listData.id)
-            .then(response => {
-              const listTasksData = JSON.parse(response.body);
-
-              // Adds each task to the array
-              let tasksData = this.state.tasksData || [];
-              for (let i = 0; i < listTasksData.length; i++) {
-                const listTaskData = listTasksData[i];
-                tasksData.push(listTaskData);
-              }
-
-              // Sorts the list of tasks by latest
-              tasksData = tasksData.sort(function(a, b) {
-                return b.created_at.localeCompare(a.created_at);
-              });
-
-              // TODO: Add code to get only items from a certain timestamp
-
-              this.setState({ tasksData });
-            })
-            .catch(error => {
-              console.log(error);
-            });
-        }
-      })
-      .catch(error => {
-        console.log(error);
-      });
+  async displayTasks() {
+    const tasksData = await getTasks();
+    this.setState({ tasksData });
   }
+
   render() {
     return (
       <div className="events events--wunderlist">
@@ -101,4 +68,82 @@ class Task extends Component {
   }
 }
 
-export default Wunderlist;
+export async function getTasks() {
+  return await wunderlistAPI
+    .getLists()
+    .then(async response => {
+      return response;
+    })
+    .then(async response => {
+      const listsData = JSON.parse(response.body);
+
+      let tasksData = [];
+      for (let i = 0; i < listsData.length; i++) {
+        const listData = listsData[i];
+
+        const listTasks = await wunderlistAPI
+          // TODO: Check the API for if I can pull only uncompleted tasks
+          .getTasks(listData.id)
+          .then(async response => {
+            const listTasksData = JSON.parse(response.body);
+
+            // Adds each task to the array
+            let tasksData = [];
+            for (let i = 0; i < listTasksData.length; i++) {
+              const listTaskData = listTasksData[i];
+
+              // Builds the EventItem
+              const eventItem = new EventItem();
+              eventItem.source = "Wunderlist";
+              eventItem.type = "TODO";
+              eventItem.title = "";
+              eventItem.content = listTaskData.title;
+              // eventItem.url = listTaskData; // TODO: Get a link to the task
+              eventItem.date = listTaskData.created_at; // "2019-05-15T18:20:02.902Z"
+              eventItem.completed = listTaskData.completed;
+              eventItem.id = Helper.hash(
+                `${eventItem.source}-${eventItem.date}`
+              );
+
+              /*
+              completed: false
+              created_at: "2019-05-15T18:20:02.902Z"
+              created_by_id: 93377558
+              created_by_request_id: "498d3ffc44ddfa2f275b:ffbd25b3-beb4-419b-aa26-2a7b099ac2ec:8cafb356-74a1-4e35-ba0d-03de-f25a5092:93377558:lw2768e3c6e856d1d304ba7275c8ae3a"
+              id: 5022245533
+              list_id: 393925971
+              revision: 1
+              starred: false
+              title: "Task 2"
+              type: "task"
+              */
+
+              tasksData.push(eventItem);
+            }
+
+            // Sorts the list of tasks by latest
+            tasksData = tasksData.sort(function(task1, task2) {
+              return Sugar.Date.isBefore(
+                Sugar.Date.create(task1.date),
+                Sugar.Date.create(task2.date)
+              );
+            });
+
+            return tasksData;
+          })
+          .catch(error => {
+            console.log(error);
+          });
+
+        // TODO: Check that we got valid data back in listTasksData
+
+        // Full list of tasks from each list
+        tasksData = tasksData.concat(listTasks);
+      }
+
+      return tasksData;
+    })
+    .catch(error => {
+      console.log(error);
+    });
+}

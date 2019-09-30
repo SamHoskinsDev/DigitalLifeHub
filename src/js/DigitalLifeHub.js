@@ -3,17 +3,12 @@ import * as Helper from "./Helper";
 //import logo from "../assets/images/logo.svg";
 import "../css/main.scss";
 //import Gmail from "./gmail/Gmail";
-import Wunderlist from "./sources/Wunderlist";
+import {
+  Wunderlist,
+  getTasks as getWunderlistTasks
+} from "./sources/Wunderlist";
 
 var Sugar = require("sugar");
-
-/*
-var express = require("express");
-require("dotenv").config();
-DigitalLifeHub.use("/public", express.static(__dirname + "/public"));
-require("./lib/routes.js")(DigitalLifeHub);
-DigitalLifeHub.listen("port");
-*/
 
 /*
 TODO:
@@ -25,16 +20,39 @@ TODO:
   - Icon to allow opening the Event's URL in a new tab
 */
 
-class EventItem {
-  tasks = {};
-  checked = false;
+export class EventItem {
+  source = "";
+  id = "";
+  type = "";
+  title = "";
+  content = "";
+  url = "";
+  date = "";
+  completed = "";
+  tasks = [];
 
-  constructor(source, id, name, url, timestamp) {
+  constructor(
+    source = "",
+    id = "",
+    type = "",
+    title = "",
+    content = "",
+    url = "",
+    date = "", // ISO8601 formatted
+    completed = false
+  ) {
     this.source = source;
     this.id = id;
-    this.name = name;
+    this.type = type;
+    this.title = title;
+    this.content = content;
     this.url = url;
-    this.timestamp = timestamp;
+    this.date = date;
+    this.completed = completed;
+  }
+
+  addEventTask(eventTask) {
+    this.tasks.push(eventTask);
   }
 }
 class EventTask {
@@ -60,7 +78,7 @@ class DigitalLifeHub extends Component {
     }
   }
 
-  getEvents() {
+  async getEvents() {
     let events = [];
 
     // TODO: Get Gmail "Events"
@@ -68,16 +86,20 @@ class DigitalLifeHub extends Component {
       new EventItem(
         "Gmail",
         1,
+        "Email",
         "Email from person 1",
+        "Hi this is person 1",
         "https://www.gmail.com/email",
-        1557951627
+        "2019-05-15T20:20:27.000Z"
       ),
       new EventItem(
         "Gmail",
         2,
+        "Email",
         "Spam from crappy business",
+        "Yeah it's true, we suck",
         "https://www.gmail.com/email",
-        1557951621
+        "2019-05-15T20:20:21.000Z"
       )
     );
 
@@ -85,6 +107,10 @@ class DigitalLifeHub extends Component {
     //const tasks = Wunderlist.getTasks();
 
     // TODO: Get Wunderlist "Events"
+
+    const wunderlistTasks = await getWunderlistTasks();
+    events = events.concat(wunderlistTasks);
+    /*
     events.push(
       new EventItem(
         "Wunderlist",
@@ -101,10 +127,14 @@ class DigitalLifeHub extends Component {
         1557951625
       )
     );
+    */
 
     // Sorts the Events by most recent
-    events = events.sort(function(a, b) {
-      return parseFloat(b.timestamp) - parseFloat(a.timestamp);
+    events = events.sort(function(event1, event2) {
+      return Sugar.Date.isBefore(
+        Sugar.Date.create(event1.date),
+        Sugar.Date.create(event2.date)
+      );
     });
 
     // TODO: Update list of filters
@@ -193,19 +223,27 @@ class Event extends Component {
 
   render() {
     const sanitizedSource = Helper.toDashedLower(this.props.event.source);
-    const eventDateTime = Sugar.Date.create(this.props.event.timestamp * 1000);
-    const relativeDateTime = Sugar.Date.relative(eventDateTime);
+    const eventDateTime = this.props.event.date
+      ? Sugar.Date.create(this.props.event.date)
+      : null;
+    const relativeDateTime = eventDateTime
+      ? Sugar.Date.relative(eventDateTime)
+      : null;
 
     return (
       <li className={`event event--${sanitizedSource}`}>
         <input type="checkbox" className="event__checkbox" />
-        {/* TODO: Add source icon */}
         <img
           src={require(`../assets/images/logos/${sanitizedSource}.png`)}
           alt={`${this.props.event.source} icon`}
           className="event__source-icon"
         />
-        <span className="event__title">{this.props.event.name}</span>
+        <div className="event__details">
+          {this.props.event.title && (
+            <span className="event__title">{this.props.event.title}</span>
+          )}
+          <span className="event__content">{this.props.event.content}</span>
+        </div>
         {relativeDateTime && (
           <span className="event__date">{relativeDateTime}</span>
         )}
