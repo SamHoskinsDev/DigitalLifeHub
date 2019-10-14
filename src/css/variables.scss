@@ -1,13 +1,28 @@
 // Brand colours
-//$gmail: #d44638;
-$gmail: blue;
+$gmail: blue; //#d44638;
 $wunderlist: #db4c3f;
 
-// ----- Event -----
-// Spacing
+// ----- Events ----- //
+// Sizing //
+$event-height: 50px;
+
+// Spacing //
 $event-margin: 0.3em 0;
 $event-padding: 0.5em;
 
 $event-border-width: 2px;
 
 $event-source-icon-width: 2em;
+
+// TODO: Currently these just mimic the Event styles
+// ----- Tasks ----- //
+// Sizing //
+$task-height: 50px;
+
+// Spacing //
+$task-margin: $event-margin;
+$task-padding: $event-padding;
+
+$task-border-width: $event-border-width;
+
+$task-source-icon-width: $event-source-icon-width;

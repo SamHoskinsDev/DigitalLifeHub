@@ -1,9 +1,9 @@
 import React, { Component } from "react";
 import * as Helper from "./Helper";
-//import logo from "../assets/images/logo.svg";
+// import logo from "../assets/images/logo.svg";
 import "../css/main.scss";
-//import Gmail from "./gmail/Gmail";
-import Wunderlist from "./sources/Wunderlist";
+// import Gmail from "./gmail/Gmail";
+// import Wunderlist from "./sources/Wunderlist";
 
 var Sugar = require("sugar");
 
@@ -25,21 +25,45 @@ TODO:
   - Icon to allow opening the Event's URL in a new tab
 */
 
-class EventItem {
+// TODO: I've used "this.forceUpdate()" a few times (mainly in checkboxes) - find a better way to handle that
+
+class Event {
   tasks = {};
+  showTasks = false;
   checked = false;
 
-  constructor(source, id, name, url, timestamp) {
+  constructor(source, title, content, url, timestamp, id = 0) {
     this.source = source;
-    this.id = id;
-    this.name = name;
+    this.title = title;
+    this.content = content;
     this.url = url;
     this.timestamp = timestamp;
+
+    // TODO: Make this a proper ID
+    this.id =
+      id !== 0
+        ? id
+        : Helper.encrypt(
+            `${this.source}-${this.title}-${this.content}-${this.timestamp}`
+          );
   }
 }
-class EventTask {
-  constructor(task) {
-    this.task = task;
+
+class Task {
+  checked = false;
+
+  constructor(content, timestamp, eventId = 0) {
+    this.content = content;
+    this.timestamp = timestamp;
+    this.eventId = eventId;
+  }
+}
+
+class Filter {
+  checked = false;
+
+  constructor(name) {
+    this.name = name;
   }
 }
 
@@ -49,7 +73,8 @@ class DigitalLifeHub extends Component {
 
     this.state = {
       filters: null,
-      events: null
+      events: null,
+      tasks: null
     };
   }
 
@@ -65,19 +90,19 @@ class DigitalLifeHub extends Component {
 
     // TODO: Get Gmail "Events"
     events.push(
-      new EventItem(
+      new Event(
         "Gmail",
-        1,
-        "Email from person 1",
+        "",
+        "This is the content (Jan)",
         "https://www.gmail.com/email",
-        1557951627
+        1547494963
       ),
-      new EventItem(
+      new Event(
         "Gmail",
-        2,
-        "Spam from crappy business",
+        "Spam from crappy business (Apr)",
+        "This is the content",
         "https://www.gmail.com/email",
-        1557951621
+        1555271044
       )
     );
 
@@ -86,60 +111,112 @@ class DigitalLifeHub extends Component {
 
     // TODO: Get Wunderlist "Events"
     events.push(
-      new EventItem(
+      new Event(
         "Wunderlist",
-        1,
-        "Download a movie",
+        "",
+        "This is the content (Feb)",
         "https://www.wunderlist.com/task",
-        1557951623
+        1550173406
       ),
-      new EventItem(
+      new Event(
         "Wunderlist",
-        2,
-        "Buy milk",
+        "Buy milk (May)",
+        "This is the content",
         "https://www.wunderlist.com/task",
-        1557951625
+        1557863064
       )
     );
 
-    // Sorts the Events by most recent
-    events = events.sort(function(a, b) {
-      return parseFloat(b.timestamp) - parseFloat(a.timestamp);
+    // TODO: Also add Filters for "Types" (eg "Event", "Task", etc)
+    // Builds a list of Filters
+    const filters = [];
+    const filterNames = [...new Set(events.map(event => event.source))];
+    filterNames.forEach(filterName => {
+      filters.push(new Filter(filterName));
     });
-
-    // TODO: Update list of filters
-    const filters = [...new Set(events.map(x => x.source))];
 
     this.setState({ filters, events });
   }
 
+  displayTasks() {
+    if (!this.state.tasks) {
+      this.getTasks();
+      return;
+    }
+  }
+
+  getTasks() {
+    let tasks = [];
+
+    // TODO: Get "Tasks"
+    tasks.push(
+      new Task("Do the thing (Mar)", 1552592628),
+      new Task("Do the other thing (Jun)", 1560541485),
+      new Task(
+        "Do the Gmail thing (Sep)",
+        1568490339,
+        "04df061bc011e28911ffabefaf001080"
+      ),
+      new Task(
+        "Do the Gmail thing (Aug)",
+        1565811932,
+        "04df061bc011e28911ffabefaf001080"
+      ),
+      new Task(
+        "Do the Wunderlist thing (Jul)",
+        1563133524,
+        "3d81a0f86193d8c92188bcfd58d25c4c"
+      )
+    );
+
+    this.setState({ tasks });
+  }
+
   componentDidMount() {
     this.displayEvents();
+    this.displayTasks();
   }
 
   render() {
     return (
       <div className="hub">
         <h1>Events</h1>
-        {/* TODO: Add a filter bar, that allows selection of sources based on what's pulled in via "getEvents()" */}
-        <Filters filters={this.state.filters} />
-        <Events events={this.state.events} />
+        <FiltersComponent
+          filters={this.state.filters}
+          onChange={() => this.forceUpdate()}
+        />
+        <EventsAndTasksComponent
+          events={this.state.events}
+          tasks={this.state.tasks}
+          filters={this.state.filters}
+          onCompleted={eventOrTask => {
+            // TODO: Add logic for a task being checked off
+            alert(`"${eventOrTask.content}" completed`);
+          }}
+          addTask={task => {
+            // Adds a new Task
+            this.state.tasks.push(task);
+            this.forceUpdate();
+          }}
+        />
 
-        <Wunderlist />
+        {/* <Wunderlist /> */}
       </div>
     );
   }
 }
 
-class Filters extends Component {
+class FiltersComponent extends Component {
   render() {
-    console.log(this.props);
     return (
-      // TODO: Move the "this.props.filters" check outside of the "<ul>", and don't output any content when there are no items
       this.props.filters && (
         <ul className="filters">
           {this.props.filters.map((filter, index) => (
-            <Filter key={index} filter={filter} />
+            <FilterComponent
+              key={index}
+              filter={filter}
+              onChange={this.props.onChange}
+            />
           ))}
         </ul>
       )
@@ -147,9 +224,8 @@ class Filters extends Component {
   }
 }
 
-class Filter extends Component {
+class FilterComponent extends Component {
   render() {
-    console.log(this.props);
     const filterId = Helper.generateUniqueId();
 
     return (
@@ -159,36 +235,114 @@ class Filter extends Component {
             type="checkbox"
             name="filter"
             id={filterId}
-            value={this.props.filter}
+            value={this.props.filter.name}
+            onChange={event => {
+              this.props.filter.checked = event.target.checked;
+              this.props.onChange();
+            }}
           />
-          {this.props.filter}
+          {this.props.filter.name}
         </label>
       </li>
     );
   }
 }
 
-class Events extends Component {
+class EventsAndTasksComponent extends Component {
   render() {
+    // Gets a list of sources to display
+    const sourcesToDisplay = [];
+    if (this.props.filters) {
+      this.props.filters.forEach(filter => {
+        if (filter.checked) {
+          sourcesToDisplay.push(filter.name);
+        }
+      });
+    }
+
+    // Sorts the Events and Tasks by most recent
+    let eventsAndTasks = this.props.events;
+    if (eventsAndTasks) {
+      // Adds all Tasks
+      const eventlessTasks = this.props.tasks.filter(
+        task => task.eventId === 0
+      );
+      eventsAndTasks = eventsAndTasks.concat(eventlessTasks);
+
+      // Filters the Events and Tasks based on the selected filters
+      eventsAndTasks = eventsAndTasks.filter(
+        event =>
+          sourcesToDisplay.length === 0 ||
+          sourcesToDisplay.includes(event.source)
+      );
+
+      console.log("SORTING");
+      // Sorts the Events and Tasks by most recent
+      eventsAndTasks = eventsAndTasks.sort(function(
+        eventOrTaskA,
+        eventOrTaskB
+      ) {
+        return (
+          parseFloat(eventOrTaskB.timestamp) -
+          parseFloat(eventOrTaskA.timestamp)
+        );
+      });
+    }
+
     return (
-      // TODO: Move the "this.props.events" check outside of the "<ul>", and output a different message when there are no items
-      <ul className="events">
-        {this.props.events &&
-          this.props.events.map((event, index) => (
-            <Event key={index} event={event} />
-          ))}
-      </ul>
+      <>
+        {eventsAndTasks && (
+          <ul className="events-and-tasks">
+            {eventsAndTasks.map((eventOrTask, index) => (
+              <>
+                {eventOrTask.constructor.name === "Event" && (
+                  <EventComponent
+                    key={index}
+                    event={eventOrTask}
+                    tasks={this.props.tasks.filter(
+                      task => task.eventId === eventOrTask.id
+                    )}
+                    onCompleted={eventOrTask =>
+                      this.props.onCompleted(eventOrTask)
+                    }
+                    addTask={task => this.props.addTask(task)}
+                  />
+                )}
+
+                {eventOrTask.constructor.name === "Task" && (
+                  <TaskComponent
+                    key={index}
+                    task={eventOrTask}
+                    onCompleted={eventOrTask =>
+                      this.props.onCompleted(eventOrTask)
+                    }
+                  />
+                )}
+              </>
+            ))}
+          </ul>
+        )}
+        {!eventsAndTasks && <span>No events found</span>}
+      </>
     );
   }
 }
 
-class Event extends Component {
+class EventComponent extends Component {
   addTask(event) {
     // Prompts the user to enter a task
-    const task = window.prompt(`${event.source} - Add task`);
+    let task = window.prompt(`${event.source} - Add task`);
 
-    // TODO: Add task based on "event" entity
-    alert(task);
+    // TODO: Sanitize the task text so no one can inject scripts
+    task = task.trim();
+
+    // Checks if the task is still valid
+    if (!task) {
+      return;
+    }
+
+    // Adds a new Task
+    this.props.addTask(new Task(task, Helper.getCurrentTimestamp(), event.id));
   }
 
   render() {
@@ -197,33 +351,106 @@ class Event extends Component {
     const relativeDateTime = Sugar.Date.relative(eventDateTime);
 
     return (
-      <li className={`event event--${sanitizedSource}`}>
-        <input type="checkbox" className="event__checkbox" />
-        {/* TODO: Add source icon */}
-        <img
-          src={require(`../assets/images/logos/${sanitizedSource}.png`)}
-          alt={`${this.props.event.source} icon`}
-          className="event__source-icon"
-        />
-        <span className="event__title">{this.props.event.name}</span>
-        {relativeDateTime && (
-          <span className="event__date">{relativeDateTime}</span>
-        )}
-        <span
-          className="event__add-task"
-          onClick={() => this.addTask(this.props.event)}
-        >
-          +
-        </span>
-        <a
-          href={this.props.event.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="event__url"
-        >
+      <>
+        <li className={`event event--${sanitizedSource}`}>
+          <input
+            type="checkbox"
+            className="event__checkbox"
+            onChange={() => {
+              this.props.onCompleted(this.props.event);
+            }}
+          />
+          <img
+            src={require(`../assets/images/logos/${sanitizedSource}.png`)}
+            alt={`${this.props.event.source} icon`}
+            className="event__source-icon"
+          />
+          <div className="event__details">
+            {this.props.event.title && (
+              <span className="event__title">{this.props.event.title}</span>
+            )}
+            {this.props.event.content && (
+              <span className="event__content">{this.props.event.content}</span>
+            )}
+            <span style={{ fontSize: "x-small" }}>
+              ID: {this.props.event.id}
+            </span>
+          </div>
+          {relativeDateTime && (
+            <span className="event__date">{relativeDateTime}</span>
+          )}
+          {this.props.tasks.length > 0 && (
+            <span
+              className="event__show-tasks"
+              onClick={() => {
+                this.props.event.showTasks = !this.props.event.showTasks;
+                this.forceUpdate();
+              }}
+            >
+              v
+            </span>
+          )}
+          <span
+            className="event__add-task"
+            onClick={() => this.addTask(this.props.event)}
           >
-        </a>
-        {/* TODO: Output the "tasks" on this item, in the same way that I output the initial list of "events" */}
+            +
+          </span>
+          <a
+            href={this.props.event.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="event__url"
+          >
+            >
+          </a>
+        </li>
+
+        {this.props.event.showTasks && (
+          <ul className="event-tasks">
+            {this.props.tasks.map((task, index) => (
+              <TaskComponent
+                key={index}
+                task={task}
+                onCompleted={eventOrTask => this.props.onCompleted(eventOrTask)}
+              />
+            ))}
+          </ul>
+        )}
+      </>
+    );
+  }
+}
+
+class TaskComponent extends Component {
+  render() {
+    const sanitizedSource = Helper.toDashedLower(this.props.task.source);
+    const taskDateTime = Sugar.Date.create(this.props.task.timestamp * 1000);
+    const relativeDateTime = Sugar.Date.relative(taskDateTime);
+
+    return (
+      <li
+        className={`task${sanitizedSource ? " task--${sanitizedSource}" : ""}`}
+      >
+        <input
+          type="checkbox"
+          className="task__checkbox"
+          onChange={() => {
+            this.props.onCompleted(this.props.task);
+          }}
+        />
+        {/* TODO: Put an element here to keep conformity in spacing with Events */}
+        <div className="task__details">
+          {this.props.task.title && (
+            <span className="task__title">{this.props.task.title}</span>
+          )}
+          {this.props.task.content && (
+            <span className="task__content">{this.props.task.content}</span>
+          )}
+        </div>
+        {relativeDateTime && (
+          <span className="task__date">{relativeDateTime}</span>
+        )}
       </li>
     );
   }

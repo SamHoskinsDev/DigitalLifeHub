@@ -1,8 +1,8 @@
-.event {
-  height: $event-height;
-  margin: $event-margin;
-  padding: $event-padding;
-  border: $event-border-width solid black;
+.task {
+  height: $task-height;
+  margin: $task-margin;
+  padding: $task-padding;
+  border: $task-border-width solid black;
   border-radius: 0.5em;
 
   display: flex;
@@ -22,7 +22,7 @@
   }
 
   &__source-icon {
-    width: $event-source-icon-width;
+    width: $task-source-icon-width;
   }
 
   &__details {
@@ -42,11 +42,6 @@
     font-size: 0.75em;
   }
 
-  &__show-tasks {
-    padding: 1em;
-    cursor: pointer;
-  }
-
   &__add-task {
     padding: 1em;
     cursor: pointer;
@@ -57,5 +52,13 @@
 
   & > * {
     margin: 0 0.75em;
+  }
+}
+
+.event-tasks {
+  margin: 0 2em;
+  list-style: none;
+
+  & .task {
   }
 }

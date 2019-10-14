@@ -32,6 +32,13 @@
   }
 }
 
+.events-and-tasks {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
 @import "./variables.scss";
 @import "./hub.scss";
 @import "./events.scss";
+@import "./tasks.scss";
