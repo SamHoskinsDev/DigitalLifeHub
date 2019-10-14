@@ -19,6 +19,10 @@ export function encrypt(string) {
   return md5(string);
 }
 
-export function getCurrentTimestamp() {
-  return Math.floor(Date.now() / 1000);
+export function hash(string) {
+  return string
+    .split("")
+    .map(v => v.charCodeAt(0))
+    .reduce((a, v) => (a + ((a << 7) + (a << 3))) ^ v)
+    .toString(16);
 }
