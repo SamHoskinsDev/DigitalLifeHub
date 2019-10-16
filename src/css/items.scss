@@ -1,0 +1,88 @@
+.item {
+  height: $item-height;
+  // margin: $item-margin;
+  padding: $item-padding;
+  border-width: 1px;
+  border-style: solid;
+  border-color: black;
+  border-left: $item-border-width solid black;
+  // border-radius: 0.5em;
+  background-color: $item-background-color;
+  box-shadow: 3px 3px 3px darkgrey; //black;
+
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  &:hover {
+    border-color: black;
+  }
+
+  &--gmail {
+    border-left-color: $gmail;
+
+    &:hover {
+      border-color: $gmail;
+    }
+  }
+
+  &--wunderlist {
+    border-left-color: $wunderlist;
+
+    &:hover {
+      border-color: $wunderlist;
+    }
+  }
+
+  &__checkbox {
+    //padding: 1em;
+  }
+
+  &__source-icon {
+    width: $item-source-icon-width;
+  }
+
+  &__details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__title {
+    font-weight: bold;
+  }
+
+  &__content {
+  }
+
+  &__date {
+    font-size: 0.75em;
+  }
+
+  &__show-items {
+    padding: 1em;
+    cursor: pointer;
+  }
+
+  &__add-item {
+    padding: 1em;
+    cursor: pointer;
+  }
+
+  &__url {
+  }
+
+  & > * {
+    margin: 0 0.75em;
+  }
+
+  &__sub-items {
+    margin: 0 2em;
+    padding: 0;
+    list-style: none;
+
+    & .item {
+      height: 40px;
+    }
+  }
+}

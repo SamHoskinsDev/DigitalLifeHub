@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Event } from "../DigitalLifeHub";
+import { Item, ItemTypes } from "../DigitalLifeHub";
 import * as Helper from "../Helper";
 
 const Sugar = require("sugar");
@@ -35,7 +35,7 @@ export class Wunderlist extends Component {
 
   render() {
     return (
-      <div className="events events--wunderlist">
+      <div className="items items--wunderlist">
         <h2>Wunderlist</h2>
         <div className="wunderlist__lists">
           Recent tasks: <Tasks tasks={this.state.tasksData} />
@@ -48,7 +48,7 @@ export class Wunderlist extends Component {
 class Tasks extends Component {
   render() {
     return (
-      <ul className="events">
+      <ul className="items">
         {this.props.tasks &&
           this.props.tasks.map((task, index) => (
             <Task key={index} task={task} />
@@ -61,7 +61,7 @@ class Tasks extends Component {
 class Task extends Component {
   render() {
     return (
-      <li className="events__event events__event--wunderlist">
+      <li className="items__item items__item--wunderlist">
         {this.props.task.title}{" "}
       </li>
     );
@@ -92,16 +92,16 @@ export async function getTasks() {
             for (let i = 0; i < listTasksData.length; i++) {
               const listTaskData = listTasksData[i];
 
-              // Builds the Event
-              const event = new Event();
-              event.source = "Wunderlist";
-              event.type = "TODO";
-              event.title = "";
-              event.content = listTaskData.title;
-              // event.url = listTaskData; // TODO: Get a link to the task
-              event.date = listTaskData.created_at; // "2019-05-15T18:20:02.902Z"
-              event.completed = listTaskData.completed;
-              event.id = Helper.hash(`${event.source}-${event.date}`);
+              // Builds the Item
+              const item = new Item();
+              item.source = "Wunderlist";
+              item.type = ItemTypes.TODO;
+              item.title = "";
+              item.content = listTaskData.title;
+              // item.url = listTaskData; // TODO: Get a link to the task
+              item.date = listTaskData.created_at; // "2019-05-15T18:20:02.902Z"
+              item.completed = listTaskData.completed;
+              item.id = Helper.hash(`${item.source}-${item.date}`);
 
               /*
               completed: false
@@ -116,7 +116,7 @@ export async function getTasks() {
               type: "task"
               */
 
-              tasksData.push(event);
+              tasksData.push(item);
             }
 
             // Sorts the list of tasks by latest

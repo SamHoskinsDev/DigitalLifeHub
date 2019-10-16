@@ -32,7 +32,13 @@
   }
 }
 
-.events-and-tasks {
+body {
+  margin: 0;
+  padding: 0;
+  background: whitesmoke;
+}
+
+.items {
   margin: 0;
   padding: 0;
   list-style: none;
@@ -40,5 +46,4 @@
 
 @import "./variables.scss";
 @import "./hub.scss";
-@import "./events.scss";
-@import "./tasks.scss";
+@import "./items.scss";

@@ -6,91 +6,54 @@ import "../css/main.scss";
 // import Wunderlist from "./sources/Wunderlist";
 import {
   Wunderlist,
-  getTasks as getWunderlistTasks
+  getTasks as getWunderlistItems
 } from "./sources/Wunderlist";
 
 const Sugar = require("sugar");
 
 /*
 TODO:
-  Create a central "Event" object
+  Create a central "Item" object
   - This can be a Wunderlist item, an email, a message in Slack, etc
   - This should be actionable
-	  - Add task text
+	  - Add item text
     - Checkbox so it's checkable
-  - Icon to allow opening the Event's URL in a new tab
+    - "onChecked" function
 */
 
 // TODO: I've used "this.forceUpdate()" a few times (mainly in checkboxes) - find a better way to handle that
 
-export class Event {
-  showTasks = false;
+export const ItemTypes = {
+  EMAIL: "Email",
+  TODO: "TODO",
+  TASK: "Task"
+};
 
-  constructor(source, type, title, content, url, date, completed, id = 0) {
-    this.source = source;
-    this.type = type;
-    this.title = title;
-    this.content = content;
-    this.url = url;
-    this.date = date;
-    this.completed = completed;
-
-    // TODO: Make this a proper ID
-    this.id =
-      id !== 0
-        ? id
-        : Helper.encrypt(
-            `${this.source}-${this.title}-${this.content}-${this.timestamp}`
-          );
-  }
-}
-
-// TODO: Re-enable this(?)
-/*
-export class EventItem {
-  source = "";
-  id = "";
-  type = "";
-  title = "";
-  content = "";
-  url = "";
-  date = "";
-  completed = "";
-  tasks = [];
+export class Item {
+  showSubItems = false;
 
   constructor(
-    source = "",
-    id = "",
-    type = "",
-    title = "",
-    content = "",
-    url = "",
-    date = "", // ISO8601 formatted
-    completed = false
+    source,
+    type,
+    title,
+    content,
+    url,
+    date,
+    completed = false,
+    id = null,
+    associatedItemId = 0
   ) {
     this.source = source;
-    this.id = id;
     this.type = type;
     this.title = title;
     this.content = content;
     this.url = url;
     this.date = date;
     this.completed = completed;
-  }
-
-  addEventTask(eventTask) {
-    this.tasks.push(eventTask);
-  }
-}
-*/
-
-class Task {
-  checked = false;
-
-  constructor(content, date, eventId = 0) {
-    this.content = content;
-    this.date = date;
-    this.eventId = eventId;
+    // TODO: Make this a proper ID
+    this.id =
+      id || Helper.encrypt(`${this.source}-${this.content}-${this.timestamp}`);
+    this.associatedItemId = associatedItemId;
   }
 }
 
@@ -108,34 +71,33 @@ class DigitalLifeHub extends Component {
 
     this.state = {
       filters: null,
-      events: null,
-      tasks: null
+      items: null
     };
   }
 
-  displayEvents() {
-    if (!this.state.events) {
-      this.getEvents();
+  displayItems() {
+    if (!this.state.items) {
+      this.getItems();
       return;
     }
   }
 
-  async getEvents() {
-    let events = [];
+  async getItems() {
+    let items = [];
 
-    // TODO: Get Gmail "Events"
-    events.push(
-      new Event(
+    // TODO: Get Gmail "Items"
+    items.push(
+      new Item(
         "Gmail",
-        "Email",
+        ItemTypes.EMAIL,
         "Email from person 1",
         "Hi this is person 1",
         "https://www.gmail.com/email",
         "2019-01-14T22:42:28+0000"
       ),
-      new Event(
+      new Item(
         "Gmail",
-        "Email",
+        ItemTypes.EMAIL,
         "Spam from crappy business",
         "Yeah it's true, we suck",
         "https://www.gmail.com/email",
@@ -143,101 +105,102 @@ class DigitalLifeHub extends Component {
       )
     );
 
-    // TODO: Add a generic and reliable way to pull tasks from a "source"/"service" (eg Wunderlist, Gmail, etc)
-    //const tasks = Wunderlist.getTasks();
+    // Gets all Wunderlist items
+    const wunderlistItems = await getWunderlistItems();
+    items = items.concat(wunderlistItems);
 
-    // TODO: Get Wunderlist "Events"
-
-    const wunderlistTasks = await getWunderlistTasks();
-    events = events.concat(wunderlistTasks);
-    /*
-    events.push(
-      new Event(
-        "Wunderlist",
+    // TODO: Get tasks
+    items.push(
+      new Item(
+        "User",
+        ItemTypes.TASK,
         "",
-        "This is the content (Feb)",
-        "https://www.wunderlist.com/task",
-        1550173406
+        "Do the thing (Mar)",
+        "",
+        "2019-03-14T22:43:25+0000"
       ),
-      new Event(
-        "Wunderlist",
-        "Buy milk (May)",
-        "This is the content",
-        "https://www.wunderlist.com/task",
-        1557863064
+      new Item(
+        "User",
+        ItemTypes.TASK,
+        "",
+        "Do the other thing (Jun)",
+        "",
+        "2019-07-14T22:43:59+0000"
+      ),
+      new Item(
+        "User",
+        ItemTypes.TASK,
+        "",
+        "Do the Gmail thing (Sep)",
+        "",
+        "2019-02-14T22:43:06+0000",
+        false,
+        0,
+        "d1d7bf74fea7330d3acf8677e9303c09"
+      ),
+      new Item(
+        "User",
+        ItemTypes.TASK,
+        "",
+        "Do the Gmail thing (Aug)",
+        "",
+        "2019-08-14T19:45:32+0000",
+        false,
+        0,
+        "d1d7bf74fea7330d3acf8677e9303c09"
+      ),
+      new Item(
+        "User",
+        ItemTypes.TASK,
+        "",
+        "Do the Wunderlist thing (Jul)",
+        "",
+        "2019-06-14T22:43:45+0000",
+        false,
+        0,
+        "4d6d1da1"
       )
     );
-    */
 
-    // TODO: Also add Filters for "Types" (eg "Event", "Task", etc)
+    // TODO: Also add Filters for "Types" (eg "Item", "Item", etc)
     // Builds a list of Filters
     const filters = [];
-    const filterNames = [...new Set(events.map(event => event.source))];
+    const filterNames = [...new Set(items.map(item => item.source))];
     filterNames.forEach(filterName => {
       filters.push(new Filter(filterName));
     });
 
-    this.setState({ filters, events });
-  }
-
-  displayTasks() {
-    if (!this.state.tasks) {
-      this.getTasks();
-      return;
-    }
-  }
-
-  getTasks() {
-    let tasks = [];
-
-    // TODO: Get "Tasks"
-    tasks.push(
-      new Task("Do the thing (Mar)", "2019-03-14T22:43:25+0000"),
-      new Task("Do the other thing (Jun)", "2019-07-14T22:43:59+0000"),
-      new Task(
-        "Do the Gmail thing (Sep)",
-        "2019-02-14T22:43:06+0000",
-        "9837d49eb0c2a01002a8aed357c0ae09"
-      ),
-      new Task(
-        "Do the Gmail thing (Aug)",
-        "2019-08-14T19:45:32+0000",
-        "9837d49eb0c2a01002a8aed357c0ae09"
-      ),
-      new Task(
-        "Do the Wunderlist thing (Jul)",
-        "2019-06-14T22:43:45+0000",
-        "6c7f774f"
-      )
-    );
-
-    this.setState({ tasks });
+    this.setState({ items, filters });
   }
 
   componentDidMount() {
-    this.displayEvents();
-    this.displayTasks();
+    this.displayItems();
   }
 
   render() {
+    console.table("items", this.state.items);
+
     return (
       <div className="hub">
-        <h1>Events</h1>
+        <h1>Items</h1>
         <FiltersComponent
           filters={this.state.filters}
           onChange={() => this.forceUpdate()}
         />
-        <EventsAndTasksComponent
-          events={this.state.events}
-          tasks={this.state.tasks}
+        <ItemsComponent
+          items={this.state.items}
           filters={this.state.filters}
-          onCompleted={eventOrTask => {
-            // TODO: Add logic for a task being checked off
-            alert(`"${eventOrTask.content}" completed`);
+          onCompleted={item => {
+            /* TODO: Add logic for a item being checked off
+                This logic should be to call from the source's "onTaskCompleted", as each source will need to handle this differently
+                eg deleting an email in Gmail, setting a task as checked in Wunderlist
+            */
+
+            alert(`"${item.content}" completed`);
           }}
-          addTask={task => {
-            // Adds a new Task
-            this.state.tasks.push(task);
+          addItem={item => {
+            // Adds a new Item
+            this.state.items.push(item);
             this.forceUpdate();
           }}
         />
@@ -278,8 +241,8 @@ class FilterComponent extends Component {
             name="filter"
             id={filterId}
             value={this.props.filter.name}
-            onChange={event => {
-              this.props.filter.checked = event.target.checked;
+            onChange={item => {
+              this.props.filter.checked = item.target.checked;
               this.props.onChange();
             }}
           />
@@ -290,7 +253,7 @@ class FilterComponent extends Component {
   }
 }
 
-class EventsAndTasksComponent extends Component {
+class ItemsComponent extends Component {
   render() {
     // Gets a list of sources to display
     const sourcesToDisplay = [];
@@ -302,232 +265,251 @@ class EventsAndTasksComponent extends Component {
       });
     }
 
-    // Sorts the Events and Tasks by most recent
-    let eventsAndTasks = this.props.events;
-    if (eventsAndTasks) {
-      // Adds all Tasks
-      const eventlessTasks = this.props.tasks.filter(
-        task => task.eventId === 0
+    let items = this.props.items;
+    if (items) {
+      // Adds all Items
+      //const itemlessItems = this.props.items.filter(item => item.itemId === 0);
+      //items = items.concat(itemlessItems);
+
+      // TODO: Currently this erroneously(?) excludes Items if a source is checked
+
+      // Filters the Items based on the selected filters
+      // Also filters out tasks that have an associated item
+      items = items.filter(
+        item =>
+          (sourcesToDisplay.length === 0 ||
+            sourcesToDisplay.includes(item.source)) &&
+          item.associatedItemId === 0
       );
-      eventsAndTasks = eventsAndTasks.concat(eventlessTasks);
 
-      // TODO: Currently this excludes Tasks if a source is checked
-
-      // Filters the Events and Tasks based on the selected filters
-      eventsAndTasks = eventsAndTasks.filter(
-        event =>
-          sourcesToDisplay.length === 0 ||
-          sourcesToDisplay.includes(event.source)
-      );
-
-      console.log("SORTING");
-      // TODO: Fix sorting - currently it's not doing anything
-      // Sorts the Events and Tasks by most recent
-      eventsAndTasks = eventsAndTasks.sort(function(
-        eventOrTaskA,
-        eventOrTaskB
-      ) {
-        console.log("sorting", eventOrTaskA.date + " vs " + eventOrTaskB.date);
-        return Sugar.Date.isBefore(
-          Sugar.Date.create(eventOrTaskA.date),
-          Sugar.Date.create(eventOrTaskB.date)
-        );
+      // Sorts the Items
+      items = items.sort(function(itemA, itemB) {
+        const order = "DESC";
+        return order === "DESC"
+          ? Sugar.Date.create(itemB.date) - Sugar.Date.create(itemA.date)
+          : Sugar.Date.create(itemA.date) - Sugar.Date.create(itemB.date);
       });
-
-      /*
-      // Sorts the Events and Tasks by most recent
-      eventsAndTasks = eventsAndTasks.sort(function(
-        eventOrTaskA,
-        eventOrTaskB
-      ) {
-        return (
-          parseFloat(eventOrTaskB.timestamp) -
-          parseFloat(eventOrTaskA.timestamp)
-        );
-      });
-      */
     }
 
     return (
       <>
-        {eventsAndTasks && (
-          <ul className="events-and-tasks">
-            {eventsAndTasks.map((eventOrTask, index) => (
+        {items && (
+          <ul className="items-and-items">
+            {items.map((item, index) => (
               <>
-                {eventOrTask.constructor.name === "Event" && (
-                  <EventComponent
-                    key={index}
-                    event={eventOrTask}
-                    tasks={this.props.tasks.filter(
-                      task => task.eventId === eventOrTask.id
-                    )}
-                    onCompleted={eventOrTask =>
-                      this.props.onCompleted(eventOrTask)
-                    }
-                    addTask={task => this.props.addTask(task)}
-                  />
-                )}
-
-                {eventOrTask.constructor.name === "Task" && (
-                  <TaskComponent
-                    key={index}
-                    task={eventOrTask}
-                    onCompleted={eventOrTask =>
-                      this.props.onCompleted(eventOrTask)
-                    }
-                  />
-                )}
+                <ItemComponent
+                  key={index}
+                  item={item}
+                  subItems={this.props.items.filter(
+                    subItem => subItem.associatedItemId === item.id
+                  )}
+                  onCompleted={item => this.props.onCompleted(item)}
+                  addItem={item => this.props.addItem(item)}
+                />
               </>
             ))}
           </ul>
         )}
-        {!eventsAndTasks && <span>No events found</span>}
+        {!items && <span>No items found</span>}
       </>
     );
   }
 }
 
-class EventComponent extends Component {
-  addTask(event) {
-    // Prompts the user to enter a task
-    let task = window.prompt(`${event.source} - Add task`);
+class ItemComponent extends Component {
+  addItem(item) {
+    // Prompts the user to enter a item
+    let task = window.prompt(`${item.source} - Add item`);
 
-    // TODO: Sanitize the task text so no one can inject scripts
-    task = task.trim();
+    // Sanitizes the task
+    task = Helper.sanitizedString(task);
 
     // Checks if the task is still valid
     if (!task) {
       return;
     }
 
-    // Adds a new Task
-    this.props.addTask(new Task(task, Sugar.Date.now(), event.id));
+    // Adds a new Item
+    this.props.addItem(
+      new Item(
+        "User",
+        ItemTypes.TASK,
+        "",
+        task,
+        "",
+        Sugar.Date.create("now"),
+        false,
+        null,
+        item.id
+      )
+    );
   }
 
   render() {
-    const sanitizedSource = Helper.toDashedLower(this.props.event.source);
-    const eventDateTime = this.props.event.date
-      ? Sugar.Date.create(this.props.event.date)
+    const sanitizedSource = Helper.toDashedLower(this.props.item.source);
+    const itemDateTime = this.props.item.date
+      ? Sugar.Date.create(this.props.item.date)
       : null;
-    console.log(this.props.event.date);
-    const relativeDateTime = eventDateTime
-      ? Sugar.Date.relative(eventDateTime)
+    const relativeDateTime = itemDateTime
+      ? Sugar.Date.relative(itemDateTime)
       : null;
 
+    // TODO: Return different component depending on the Item's "type"
+
+    // TODO: Email / TODO
     return (
       <>
-        <li className={`event event--${sanitizedSource}`}>
+        <li className={`item item--${sanitizedSource}`}>
           <input
             type="checkbox"
-            className="event__checkbox"
+            className="item__checkbox"
             onChange={() => {
-              this.props.onCompleted(this.props.event);
+              this.props.onCompleted(this.props.item);
             }}
           />
           <img
             src={require(`../assets/images/logos/${sanitizedSource}.png`)}
-            alt={`${this.props.event.source} icon`}
-            className="event__source-icon"
+            alt={`${this.props.item.source} icon`}
+            className="item__source-icon"
           />
-          <div className="event__details">
-            {this.props.event.title && (
-              <span className="event__title">{this.props.event.title}</span>
+          <div className="item__details">
+            {this.props.item.title && (
+              <span className="item__title">{this.props.item.title}</span>
             )}
-            {this.props.event.content && (
-              <span className="event__content">{this.props.event.content}</span>
+            {this.props.item.content && (
+              <span className="item__content">{this.props.item.content}</span>
             )}
             <span style={{ fontSize: "x-small" }}>
-              ID: {this.props.event.id}
+              ID: {this.props.item.id}
             </span>
           </div>
           {relativeDateTime && (
-            <span className="event__date">{`${relativeDateTime} [${Sugar.Date.format(
-              eventDateTime,
+            <span className="item__date">{`${relativeDateTime} [${Sugar.Date.format(
+              itemDateTime,
               "{dd}/{MM}"
             )}]`}</span>
           )}
-          {this.props.tasks.length > 0 && (
+          {this.props.subItems.length > 0 && (
             <span
-              className="event__show-tasks"
+              className="item__show-items"
               onClick={() => {
-                this.props.event.showTasks = !this.props.event.showTasks;
+                this.props.item.showSubItems = !this.props.item.showSubItems;
                 this.forceUpdate();
               }}
             >
-              v
+              {this.props.subItems.length} task
+              {this.props.subItems.length !== 1 ? "s" : ""}{" "}
+              {this.props.item.showSubItems ? "^" : "v"}
             </span>
           )}
           <span
-            className="event__add-task"
-            onClick={() => this.addTask(this.props.event)}
+            className="item__add-item"
+            onClick={() => this.addItem(this.props.item)}
           >
             +
           </span>
-          <a
-            href={this.props.event.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="event__url"
-          >
+          {this.props.item.url && (
+            <a
+              href={this.props.item.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="item__url"
             >
-          </a>
+              >
+            </a>
+          )}
         </li>
 
-        {this.props.event.showTasks && (
-          <ul className="event-tasks">
-            {this.props.tasks.map((task, index) => (
-              <TaskComponent
+        {this.props.item.showSubItems && (
+          <ul className="item__sub-items">
+            {this.props.subItems.map((item, index) => (
+              <ItemComponent
                 key={index}
-                task={task}
-                onCompleted={eventOrTask => this.props.onCompleted(eventOrTask)}
+                item={item}
+                // TODO: This currently doesn't show sub-items of sub-items
+                subItems={this.props.subItems.filter(
+                  subItem => subItem.associatedItemId === item.id
+                )}
+                onCompleted={item => this.props.onCompleted(item)}
+                addItem={item => this.props.addItem(item)}
               />
             ))}
           </ul>
         )}
       </>
     );
+
+    // TODO: Task
+    // return (
+    //   <li
+    //     className={`item${sanitizedSource ? " item--${sanitizedSource}" : ""}`}
+    //   >
+    //     <input
+    //       type="checkbox"
+    //       className="item__checkbox"
+    //       onChange={() => {
+    //         this.props.onCompleted(this.props.item);
+    //       }}
+    //     />
+    //     {/* TODO: Put an element here to keep conformity in spacing with Items */}
+    //     <div className="item__details">
+    //       {this.props.item.title && (
+    //         <span className="item__title">{this.props.item.title}</span>
+    //       )}
+    //       {this.props.item.content && (
+    //         <span className="item__content">{this.props.item.content}</span>
+    //       )}
+    //     </div>
+    //     {relativeDateTime && (
+    //       <span className="item__date">{`${relativeDateTime} [${Sugar.Date.format(
+    //         itemDateTime,
+    //         "{dd}/{MM}"
+    //       )}]`}</span>
+    //     )}
+    //   </li>
+    // );
   }
 }
 
-class TaskComponent extends Component {
-  render() {
-    const sanitizedSource = Helper.toDashedLower(this.props.task.source);
-    const taskDateTime = this.props.task.date
-      ? Sugar.Date.create(this.props.task.date)
-      : null;
-    const relativeDateTime = taskDateTime
-      ? Sugar.Date.relative(taskDateTime)
-      : null;
+// class ItemComponent extends Component {
+//   render() {
+//     const sanitizedSource = Helper.toDashedLower(this.props.item.source);
+//     const itemDateTime = this.props.item.date
+//       ? Sugar.Date.create(this.props.item.date)
+//       : null;
+//     const relativeDateTime = itemDateTime
+//       ? Sugar.Date.relative(itemDateTime)
+//       : null;
 
-    return (
-      <li
-        className={`task${sanitizedSource ? " task--${sanitizedSource}" : ""}`}
-      >
-        <input
-          type="checkbox"
-          className="task__checkbox"
-          onChange={() => {
-            this.props.onCompleted(this.props.task);
-          }}
-        />
-        {/* TODO: Put an element here to keep conformity in spacing with Events */}
-        <div className="task__details">
-          {this.props.task.title && (
-            <span className="task__title">{this.props.task.title}</span>
-          )}
-          {this.props.task.content && (
-            <span className="task__content">{this.props.task.content}</span>
-          )}
-        </div>
-        {relativeDateTime && (
-          <span className="task__date">{`${relativeDateTime} [${Sugar.Date.format(
-            taskDateTime,
-            "{dd}/{MM}"
-          )}]`}</span>
-        )}
-      </li>
-    );
-  }
-}
+//     return (
+//       <li
+//         className={`item${sanitizedSource ? " item--${sanitizedSource}" : ""}`}
+//       >
+//         <input
+//           type="checkbox"
+//           className="item__checkbox"
+//           onChange={() => {
+//             this.props.onCompleted(this.props.item);
+//           }}
+//         />
+//         {/* TODO: Put an element here to keep conformity in spacing with Items */}
+//         <div className="item__details">
+//           {this.props.item.title && (
+//             <span className="item__title">{this.props.item.title}</span>
+//           )}
+//           {this.props.item.content && (
+//             <span className="item__content">{this.props.item.content}</span>
+//           )}
+//         </div>
+//         {relativeDateTime && (
+//           <span className="item__date">{`${relativeDateTime} [${Sugar.Date.format(
+//             itemDateTime,
+//             "{dd}/{MM}"
+//           )}]`}</span>
+//         )}
+//       </li>
+//     );
+//   }
+// }
 
 export default DigitalLifeHub;
