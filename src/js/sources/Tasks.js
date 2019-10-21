@@ -16,7 +16,7 @@ export async function getTasks() {
 
   tasks.push(
     new Item(
-      "User",
+      "Task",
       ItemTypes.TASK,
       "",
       "Do the thing (Mar)",
@@ -24,7 +24,7 @@ export async function getTasks() {
       "2019-03-14T22:43:25+0000"
     ),
     new Item(
-      "User",
+      "Task",
       ItemTypes.TASK,
       "",
       "Do the other thing (Jun)",
@@ -32,7 +32,7 @@ export async function getTasks() {
       "2019-07-14T22:43:59+0000"
     ),
     new Item(
-      "User",
+      "Task",
       ItemTypes.TASK,
       "",
       "Do the Gmail thing (Sep)",
@@ -43,7 +43,7 @@ export async function getTasks() {
       "d1d7bf74fea7330d3acf8677e9303c09"
     ),
     new Item(
-      "User",
+      "Task",
       ItemTypes.TASK,
       "",
       "Do the Gmail thing (Aug)",
@@ -54,7 +54,7 @@ export async function getTasks() {
       "d1d7bf74fea7330d3acf8677e9303c09"
     ),
     new Item(
-      "User",
+      "Task",
       ItemTypes.TASK,
       "",
       "Do the Wunderlist thing (Jul)",

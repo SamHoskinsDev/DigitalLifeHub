@@ -96,6 +96,8 @@ class DigitalLifeHub extends Component {
     const tasksItems = await getTasks();
     items = items.concat(tasksItems);
 
+    // TODO: Change the filter logic so that everything is enabled by default, and un-checking a filter hides items from that type
+
     // Builds a list of source Filters
     const sourceFilters = [];
     const sources = [...new Set(items.map(item => item.source))];
@@ -121,16 +123,18 @@ class DigitalLifeHub extends Component {
     return (
       <div className="hub">
         <h1>Items</h1>
-        <FiltersComponent
-          title="Sources"
-          filters={this.state.sourceFilters}
-          onChange={() => this.forceUpdate()}
-        />
-        <FiltersComponent
-          title="Types"
-          filters={this.state.typeFilters}
-          onChange={() => this.forceUpdate()}
-        />
+        <div className="filters">
+          <FiltersComponent
+            title="Sources"
+            filters={this.state.sourceFilters}
+            onChange={() => this.forceUpdate()}
+          />
+          <FiltersComponent
+            title="Types"
+            filters={this.state.typeFilters}
+            onChange={() => this.forceUpdate()}
+          />
+        </div>
         <ItemsComponent
           items={this.state.items}
           sourceFilters={this.state.sourceFilters}
@@ -160,9 +164,9 @@ class FiltersComponent extends Component {
   render() {
     return (
       this.props.filters && (
-        <>
+        <div className="filters__segment">
           <h3>{this.props.title}</h3>
-          <ul className="filters">
+          <ul>
             {this.props.filters.map((filter, index) => (
               <FilterComponent
                 key={index}
@@ -171,7 +175,7 @@ class FiltersComponent extends Component {
               />
             ))}
           </ul>
-        </>
+        </div>
       )
     );
   }
@@ -180,9 +184,13 @@ class FiltersComponent extends Component {
 class FilterComponent extends Component {
   render() {
     const filterId = Helper.generateUniqueId();
+    const sanitizedSource = Helper.toDashedLower(this.props.filter.name);
+    console.log("sanitizedSource", sanitizedSource);
+
+    console.log("this.props.filter.checked", this.props.filter.checked);
 
     return (
-      <li>
+      <li className="filters__filter">
         <label htmlFor={filterId}>
           <input
             type="checkbox"
@@ -194,7 +202,15 @@ class FilterComponent extends Component {
               this.props.onChange();
             }}
           />
-          {this.props.filter.name}
+          {/* {this.props.filter.name} */}
+          <img
+            src={require(`../assets/images/icons/${sanitizedSource}.png`)}
+            alt={`${this.props.filter.name} icon`}
+            className={Helper.classNames({
+              "filters__filter-icon": true,
+              "filters__filter-icon--disabled": !this.props.filter.checked
+            })}
+          />
         </label>
       </li>
     );
@@ -250,7 +266,7 @@ class ItemsComponent extends Component {
       <>
         {/* Items list */}
         {items && items.length > 0 && (
-          <ul className="items-and-items">
+          <ul className="items">
             {items.map((item, index) => (
               <>
                 <ItemComponent
@@ -294,7 +310,7 @@ class ItemComponent extends Component {
     // Adds a new Item
     this.props.addItem(
       new Item(
-        "User",
+        "Task",
         ItemTypes.TASK,
         "",
         task,
@@ -328,7 +344,7 @@ class ItemComponent extends Component {
             }}
           />
           <img
-            src={require(`../assets/images/logos/${sanitizedSource}.png`)}
+            src={require(`../assets/images/icons/${sanitizedSource}.png`)}
             alt={`${this.props.item.source} icon`}
             className="item__source-icon"
           />
@@ -349,35 +365,32 @@ class ItemComponent extends Component {
               "{dd}/{MM}"
             )}]`}</span>
           )}
-          {this.props.subItems.length > 0 && (
-            <span
-              className="item__show-items"
-              onClick={() => {
-                this.props.item.showSubItems = !this.props.item.showSubItems;
-                this.forceUpdate();
-              }}
-            >
-              {this.props.subItems.length} task
-              {this.props.subItems.length !== 1 ? "s" : ""}{" "}
-              {this.props.item.showSubItems ? "^" : "v"}
-            </span>
-          )}
+          <span
+            className="item__show-items"
+            onClick={() => {
+              this.props.item.showSubItems = !this.props.item.showSubItems;
+              this.forceUpdate();
+            }}
+          >
+            {this.props.subItems.length > 0 &&
+              `${this.props.subItems.length} task${
+                this.props.subItems.length !== 1 ? "s" : ""
+              } ${this.props.item.showSubItems ? "^" : "v"}`}
+          </span>
           <span
             className="item__add-item"
             onClick={() => this.addItem(this.props.item)}
           >
             +
           </span>
-          {this.props.item.url && (
-            <a
-              href={this.props.item.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="item__url"
-            >
-              >
-            </a>
-          )}
+          <a
+            href={this.props.item.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="item__url"
+          >
+            {this.props.item.url ? ">" : ""}
+          </a>
         </li>
 
         {/* Sub items */}

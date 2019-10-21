@@ -38,3 +38,10 @@ export function hash(str) {
     .reduce((a, v) => (a + ((a << 7) + (a << 3))) ^ v)
     .toString(16);
 }
+
+export function classNames(classes) {
+  return Object.entries(classes)
+    .filter(([key, value]) => value)
+    .map(([key, value]) => key)
+    .join(" ");
+}

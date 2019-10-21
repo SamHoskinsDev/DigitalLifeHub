@@ -1,7 +1,7 @@
 .item {
   height: $item-height;
   // margin: $item-margin;
-  padding: $item-padding;
+  padding: $item-padding 1em;
   border-width: 1px;
   border-style: solid;
   border-color: black;
@@ -34,16 +34,22 @@
     }
   }
 
+  & > * {
+    // margin: 0 0.75em;
+  }
+
   &__checkbox {
     //padding: 1em;
   }
 
   &__source-icon {
     width: $item-source-icon-width;
+    margin: 0 0 0 1em;
   }
 
   &__details {
     flex: 1;
+    margin: 0 2em;
     display: flex;
     flex-direction: column;
   }
@@ -60,20 +66,25 @@
   }
 
   &__show-items {
-    padding: 1em;
+    // padding: 1em;
+    width: 6em;
+    margin: 0 0 0 1em;
+    text-align: right;
     cursor: pointer;
   }
 
   &__add-item {
-    padding: 1em;
+    // padding: 1em;
+    width: 2em;
+    margin: 0 0 0 1em;
+    text-align: center;
     cursor: pointer;
   }
 
   &__url {
-  }
-
-  & > * {
-    margin: 0 0.75em;
+    width: 2em;
+    margin: 0 0 0 1em;
+    text-align: center;
   }
 
   &__sub-items {

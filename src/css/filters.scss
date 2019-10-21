@@ -1,0 +1,42 @@
+.filters {
+  margin-left: -3em;
+  // display: flex;
+
+  &__segment {
+    margin: 0 0 2em 3em;
+
+    display: flex;
+
+    & h3 {
+      width: 4em;
+    }
+
+    & ul {
+      margin: 0 0 0 2em;
+      padding: 0;
+      list-style: none;
+
+      display: flex;
+      align-items: center;
+
+      & li {
+        width: 50px;
+        margin-left: 1em;
+
+        & input[type="checkbox"] {
+          display: none;
+        }
+      }
+    }
+  }
+
+  &__filter-icon {
+    width: 50px;
+    cursor: pointer;
+
+    &--disabled {
+      -webkit-filter: grayscale(1);
+      filter: grayscale(1);
+    }
+  }
+}
