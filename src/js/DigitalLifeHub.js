@@ -1,13 +1,11 @@
 import React, { Component } from "react";
 import * as Helper from "./Helper";
-// import logo from "../assets/images/logo.svg";
 import "../css/main.scss";
-// import Gmail from "./gmail/Gmail";
-// import Wunderlist from "./sources/Wunderlist";
+import { /*Gmail,*/ getTasks as getGmailItems } from "./sources/Gmail";
 import {
-  Wunderlist,
-  getTasks as getWunderlistItems
+  /*Wunderlist,*/ getTasks as getWunderlistItems
 } from "./sources/Wunderlist";
+import { /*Tasks,*/ getTasks } from "./sources/Tasks";
 
 const Sugar = require("sugar");
 
@@ -70,8 +68,9 @@ class DigitalLifeHub extends Component {
     super(props);
 
     this.state = {
-      filters: null,
-      items: null
+      items: null,
+      sourceFilters: null,
+      typeFilters: null
     };
   }
 
@@ -85,92 +84,33 @@ class DigitalLifeHub extends Component {
   async getItems() {
     let items = [];
 
-    // TODO: Get Gmail "Items"
-    items.push(
-      new Item(
-        "Gmail",
-        ItemTypes.EMAIL,
-        "Email from person 1",
-        "Hi this is person 1",
-        "https://www.gmail.com/email",
-        "2019-01-14T22:42:28+0000"
-      ),
-      new Item(
-        "Gmail",
-        ItemTypes.EMAIL,
-        "Spam from crappy business",
-        "Yeah it's true, we suck",
-        "https://www.gmail.com/email",
-        "2019-04-14T22:43:34+0000"
-      )
-    );
+    // Gets all Gmail items
+    const gmailItems = await getGmailItems();
+    items = items.concat(gmailItems);
 
     // Gets all Wunderlist items
     const wunderlistItems = await getWunderlistItems();
     items = items.concat(wunderlistItems);
 
-    // TODO: Get tasks
-    items.push(
-      new Item(
-        "User",
-        ItemTypes.TASK,
-        "",
-        "Do the thing (Mar)",
-        "",
-        "2019-03-14T22:43:25+0000"
-      ),
-      new Item(
-        "User",
-        ItemTypes.TASK,
-        "",
-        "Do the other thing (Jun)",
-        "",
-        "2019-07-14T22:43:59+0000"
-      ),
-      new Item(
-        "User",
-        ItemTypes.TASK,
-        "",
-        "Do the Gmail thing (Sep)",
-        "",
-        "2019-02-14T22:43:06+0000",
-        false,
-        0,
-        "d1d7bf74fea7330d3acf8677e9303c09"
-      ),
-      new Item(
-        "User",
-        ItemTypes.TASK,
-        "",
-        "Do the Gmail thing (Aug)",
-        "",
-        "2019-08-14T19:45:32+0000",
-        false,
-        0,
-        "d1d7bf74fea7330d3acf8677e9303c09"
-      ),
-      new Item(
-        "User",
-        ItemTypes.TASK,
-        "",
-        "Do the Wunderlist thing (Jul)",
-        "",
-        "2019-06-14T22:43:45+0000",
-        false,
-        0,
-        "4d6d1da1"
-      )
-    );
+    // Gets all Tasks items
+    const tasksItems = await getTasks();
+    items = items.concat(tasksItems);
 
-    // TODO: Also add Filters for "Types" (eg "Item", "Item", etc)
-    // Builds a list of Filters
-    const filters = [];
-    const filterNames = [...new Set(items.map(item => item.source))];
-    filterNames.forEach(filterName => {
-      filters.push(new Filter(filterName));
+    // Builds a list of source Filters
+    const sourceFilters = [];
+    const sources = [...new Set(items.map(item => item.source))];
+    sources.forEach(source => {
+      sourceFilters.push(new Filter(source));
     });
 
-    this.setState({ items, filters });
+    // Builds a list of type Filters
+    const typeFilters = [];
+    const types = [...new Set(items.map(item => item.type))];
+    types.forEach(type => {
+      typeFilters.push(new Filter(type));
+    });
+
+    this.setState({ items, sourceFilters, typeFilters });
   }
 
   componentDidMount() {
@@ -178,18 +118,23 @@ class DigitalLifeHub extends Component {
   }
 
   render() {
-    console.table("items", this.state.items);
-
     return (
       <div className="hub">
         <h1>Items</h1>
         <FiltersComponent
-          filters={this.state.filters}
+          title="Sources"
+          filters={this.state.sourceFilters}
+          onChange={() => this.forceUpdate()}
+        />
+        <FiltersComponent
+          title="Types"
+          filters={this.state.typeFilters}
           onChange={() => this.forceUpdate()}
         />
         <ItemsComponent
           items={this.state.items}
-          filters={this.state.filters}
+          sourceFilters={this.state.sourceFilters}
+          typeFilters={this.state.typeFilters}
           onCompleted={item => {
             /* TODO: Add logic for a item being checked off
                 This logic should be to call from the source's "onTaskCompleted", as each source will need to handle this differently
@@ -215,15 +160,18 @@ class FiltersComponent extends Component {
   render() {
     return (
       this.props.filters && (
-        <ul className="filters">
-          {this.props.filters.map((filter, index) => (
-            <FilterComponent
-              key={index}
-              filter={filter}
-              onChange={this.props.onChange}
-            />
-          ))}
-        </ul>
+        <>
+          <h3>{this.props.title}</h3>
+          <ul className="filters">
+            {this.props.filters.map((filter, index) => (
+              <FilterComponent
+                key={index}
+                filter={filter}
+                onChange={this.props.onChange}
+              />
+            ))}
+          </ul>
+        </>
       )
     );
   }
@@ -257,29 +205,33 @@ class ItemsComponent extends Component {
   render() {
     // Gets a list of sources to display
     const sourcesToDisplay = [];
-    if (this.props.filters) {
-      this.props.filters.forEach(filter => {
+    if (this.props.sourceFilters) {
+      this.props.sourceFilters.forEach(filter => {
         if (filter.checked) {
           sourcesToDisplay.push(filter.name);
         }
       });
     }
 
+    // Gets a list of types to display
+    const typesToDisplay = [];
+    if (this.props.typeFilters) {
+      this.props.typeFilters.forEach(filter => {
+        if (filter.checked) {
+          typesToDisplay.push(filter.name);
+        }
+      });
+    }
+
     let items = this.props.items;
     if (items) {
-      // Adds all Items
-      //const itemlessItems = this.props.items.filter(item => item.itemId === 0);
-      //items = items.concat(itemlessItems);
-
-      // TODO: Currently this erroneously(?) excludes Items if a source is checked
-
-      // Filters the Items based on the selected filters
-      // Also filters out tasks that have an associated item
+      // Filters Items based on the selected filters, also filtering out tasks that have an associated item
       items = items.filter(
         item =>
+          item.associatedItemId === 0 &&
           (sourcesToDisplay.length === 0 ||
             sourcesToDisplay.includes(item.source)) &&
-          item.associatedItemId === 0
+          (typesToDisplay.length === 0 || typesToDisplay.includes(item.type))
       );
 
       // Sorts the Items
@@ -291,9 +243,13 @@ class ItemsComponent extends Component {
       });
     }
 
+    const isFiltering =
+      sourcesToDisplay.length > 0 || typesToDisplay.length > 0;
+
     return (
       <>
-        {items && (
+        {/* Items list */}
+        {items && items.length > 0 && (
           <ul className="items-and-items">
             {items.map((item, index) => (
               <>
@@ -310,7 +266,13 @@ class ItemsComponent extends Component {
             ))}
           </ul>
         )}
-        {!items && <span>No items found</span>}
+
+        {/* "No items found" output */}
+        {(!items || items.length === 0) && (
+          <>
+            <span>No {isFiltering ? "matching " : ""}items found</span>
+          </>
+        )}
       </>
     );
   }
@@ -354,11 +316,9 @@ class ItemComponent extends Component {
       ? Sugar.Date.relative(itemDateTime)
       : null;
 
-    // TODO: Return different component depending on the Item's "type"
-
-    // TODO: Email / TODO
     return (
       <>
+        {/* Item details */}
         <li className={`item item--${sanitizedSource}`}>
           <input
             type="checkbox"
@@ -420,13 +380,13 @@ class ItemComponent extends Component {
           )}
         </li>
 
+        {/* Sub items */}
         {this.props.item.showSubItems && (
           <ul className="item__sub-items">
             {this.props.subItems.map((item, index) => (
               <ItemComponent
                 key={index}
                 item={item}
-                // TODO: This currently doesn't show sub-items of sub-items
                 subItems={this.props.subItems.filter(
                   subItem => subItem.associatedItemId === item.id
                 )}
@@ -438,78 +398,7 @@ class ItemComponent extends Component {
         )}
       </>
     );
-
-    // TODO: Task
-    // return (
-    //   <li
-    //     className={`item${sanitizedSource ? " item--${sanitizedSource}" : ""}`}
-    //   >
-    //     <input
-    //       type="checkbox"
-    //       className="item__checkbox"
-    //       onChange={() => {
-    //         this.props.onCompleted(this.props.item);
-    //       }}
-    //     />
-    //     {/* TODO: Put an element here to keep conformity in spacing with Items */}
-    //     <div className="item__details">
-    //       {this.props.item.title && (
-    //         <span className="item__title">{this.props.item.title}</span>
-    //       )}
-    //       {this.props.item.content && (
-    //         <span className="item__content">{this.props.item.content}</span>
-    //       )}
-    //     </div>
-    //     {relativeDateTime && (
-    //       <span className="item__date">{`${relativeDateTime} [${Sugar.Date.format(
-    //         itemDateTime,
-    //         "{dd}/{MM}"
-    //       )}]`}</span>
-    //     )}
-    //   </li>
-    // );
   }
 }
-
-// class ItemComponent extends Component {
-//   render() {
-//     const sanitizedSource = Helper.toDashedLower(this.props.item.source);
-//     const itemDateTime = this.props.item.date
-//       ? Sugar.Date.create(this.props.item.date)
-//       : null;
-//     const relativeDateTime = itemDateTime
-//       ? Sugar.Date.relative(itemDateTime)
-//       : null;
-
-//     return (
-//       <li
-//         className={`item${sanitizedSource ? " item--${sanitizedSource}" : ""}`}
-//       >
-//         <input
-//           type="checkbox"
-//           className="item__checkbox"
-//           onChange={() => {
-//             this.props.onCompleted(this.props.item);
-//           }}
-//         />
-//         {/* TODO: Put an element here to keep conformity in spacing with Items */}
-//         <div className="item__details">
-//           {this.props.item.title && (
-//             <span className="item__title">{this.props.item.title}</span>
-//           )}
-//           {this.props.item.content && (
-//             <span className="item__content">{this.props.item.content}</span>
-//           )}
-//         </div>
-//         {relativeDateTime && (
-//           <span className="item__date">{`${relativeDateTime} [${Sugar.Date.format(
-//             itemDateTime,
-//             "{dd}/{MM}"
-//           )}]`}</span>
-//         )}
-//       </li>
-//     );
-//   }
-// }
 
 export default DigitalLifeHub;
