@@ -56,7 +56,7 @@ export class Item {
 }
 
 class Filter {
-  checked = false;
+  checked = true;
 
   constructor(name) {
     this.name = name;
@@ -197,6 +197,7 @@ class FilterComponent extends Component {
             name="filter"
             id={filterId}
             value={this.props.filter.name}
+            checked={this.props.filter.checked}
             onChange={item => {
               this.props.filter.checked = item.target.checked;
               this.props.onChange();
@@ -205,6 +206,7 @@ class FilterComponent extends Component {
           {/* {this.props.filter.name} */}
           <img
             src={require(`../assets/images/icons/${sanitizedSource}.png`)}
+            title={this.props.filter.name}
             alt={`${this.props.filter.name} icon`}
             className={Helper.classNames({
               "filters__filter-icon": true,
@@ -345,6 +347,7 @@ class ItemComponent extends Component {
           />
           <img
             src={require(`../assets/images/icons/${sanitizedSource}.png`)}
+            title={this.props.item.source}
             alt={`${this.props.item.source} icon`}
             className="item__source-icon"
           />
