@@ -92,31 +92,24 @@ export async function getTasks() {
             for (let i = 0; i < listTasksData.length; i++) {
               const listTaskData = listTasksData[i];
 
-              // Builds the Item
-              const item = new Item();
-              item.source = "Wunderlist";
-              item.type = ItemTypes.TODO;
-              item.title = "";
-              item.content = listTaskData.title;
-              // item.url = listTaskData; // TODO: Get a link to the task
-              item.date = listTaskData.created_at; // "2019-05-15T18:20:02.902Z"
-              item.completed = listTaskData.completed;
-              item.id = Helper.hash(`${item.source}-${item.date}`);
+              const source = "Wunderlist";
+              const date = listTaskData.created_at;
 
-              /*
-              completed: false
-              created_at: "2019-05-15T18:20:02.902Z"
-              created_by_id: 93377558
-              created_by_request_id: "498d3ffc44ddfa2f275b:ffbd25b3-beb4-419b-aa26-2a7b099ac2ec:8cafb356-74a1-4e35-ba0d-03de-f25a5092:93377558:lw2768e3c6e856d1d304ba7275c8ae3a"
-              id: 5022245533
-              list_id: 393925971
-              revision: 1
-              starred: false
-              title: "Task 2"
-              type: "task"
-              */
-
-              tasksData.push(item);
+              // Adds the Item to the list
+              tasksData.push(
+                new Item({
+                  id: Helper.hash(`${source}-${date}`),
+                  source: source,
+                  type: ItemTypes.TODO,
+                  content: listTaskData.title,
+                  url: "", // TODO: Get a link to the task
+                  date: date,
+                  completed: listTaskData.completed,
+                  onItemChecked: function(checked) {
+                    onItemChecked(this, checked);
+                  }
+                })
+              );
             }
 
             // Sorts the list of tasks by latest
@@ -145,3 +138,16 @@ export async function getTasks() {
       console.log(error);
     });
 }
+
+function onItemChecked(item, checked) {
+  if (!item) {
+    return;
+  }
+
+  item.completed = checked;
+  alert(
+    `Wunderlist.js | "${item.source}" - "${item.content}" completed: ${item.completed}`
+  );
+}
+
+export default Wunderlist;

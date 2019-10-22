@@ -30,28 +30,23 @@ export const ItemTypes = {
 export class Item {
   showSubItems = false;
 
-  constructor(
-    source,
-    type,
-    title,
-    content,
-    url,
-    date,
-    completed = false,
-    id = null,
-    associatedItemId = 0
-  ) {
-    this.source = source;
-    this.type = type;
-    this.title = title;
-    this.content = content;
-    this.url = url;
-    this.date = date;
-    this.completed = completed;
+  constructor(params) {
+    this.source = params.source;
+    this.type = params.type;
+    this.title = params.title;
+    this.content = params.content;
+    this.url = params.url;
+    this.date = params.date;
+    this.completed = params.completed;
+    this.associatedItemId = params.associatedItemId;
+    this.onItemChecked = params.onItemChecked;
+
+    this.id = params.id || this.generateId();
+  }
+
+  generateId() {
     // TODO: Make this a proper ID
-    this.id =
-      id || Helper.encrypt(`${this.source}-${this.content}-${this.timestamp}`);
-    this.associatedItemId = associatedItemId;
+    return Helper.encrypt(`${this.source}-${this.content}-${this.timestamp}`);
   }
 }
 
@@ -96,8 +91,6 @@ class DigitalLifeHub extends Component {
     const tasksItems = await getTasks();
     items = items.concat(tasksItems);
 
-    // TODO: Change the filter logic so that everything is enabled by default, and un-checking a filter hides items from that type
-
     // Builds a list of source Filters
     const sourceFilters = [];
     const sources = [...new Set(items.map(item => item.source))];
@@ -135,17 +128,14 @@ class DigitalLifeHub extends Component {
             onChange={() => this.forceUpdate()}
           />
         </div>
+
         <ItemsComponent
           items={this.state.items}
           sourceFilters={this.state.sourceFilters}
           typeFilters={this.state.typeFilters}
-          onCompleted={item => {
-            /* TODO: Add logic for a item being checked off
-                This logic should be to call from the source's "onTaskCompleted", as each source will need to handle this differently
-                eg deleting an email in Gmail, setting a task as checked in Wunderlist
-            */
-
-            alert(`"${item.content}" completed`);
+          onChecked={(item, checked) => {
+            // Handles the Item being checked
+            item.onItemChecked && item.onItemChecked(checked);
           }}
           addItem={item => {
             // Adds a new Item
@@ -185,9 +175,6 @@ class FilterComponent extends Component {
   render() {
     const filterId = Helper.generateUniqueId();
     const sanitizedSource = Helper.toDashedLower(this.props.filter.name);
-    console.log("sanitizedSource", sanitizedSource);
-
-    console.log("this.props.filter.checked", this.props.filter.checked);
 
     return (
       <li className="filters__filter">
@@ -198,8 +185,8 @@ class FilterComponent extends Component {
             id={filterId}
             value={this.props.filter.name}
             checked={this.props.filter.checked}
-            onChange={item => {
-              this.props.filter.checked = item.target.checked;
+            onChange={event => {
+              this.props.filter.checked = event.target.checked;
               this.props.onChange();
             }}
           />
@@ -222,22 +209,28 @@ class FilterComponent extends Component {
 class ItemsComponent extends Component {
   render() {
     // Gets a list of sources to display
+    let sourcesAreFiltered = false;
     const sourcesToDisplay = [];
     if (this.props.sourceFilters) {
       this.props.sourceFilters.forEach(filter => {
         if (filter.checked) {
           sourcesToDisplay.push(filter.name);
+          return;
         }
+        sourcesAreFiltered = true;
       });
     }
 
     // Gets a list of types to display
+    let typesAreFiltered = false;
     const typesToDisplay = [];
     if (this.props.typeFilters) {
       this.props.typeFilters.forEach(filter => {
         if (filter.checked) {
           typesToDisplay.push(filter.name);
+          return;
         }
+        typesAreFiltered = true;
       });
     }
 
@@ -246,10 +239,9 @@ class ItemsComponent extends Component {
       // Filters Items based on the selected filters, also filtering out tasks that have an associated item
       items = items.filter(
         item =>
-          item.associatedItemId === 0 &&
-          (sourcesToDisplay.length === 0 ||
-            sourcesToDisplay.includes(item.source)) &&
-          (typesToDisplay.length === 0 || typesToDisplay.includes(item.type))
+          !item.associatedItemId &&
+          (!sourcesToDisplay || sourcesToDisplay.includes(item.source)) &&
+          (!typesToDisplay || typesToDisplay.includes(item.type))
       );
 
       // Sorts the Items
@@ -261,9 +253,7 @@ class ItemsComponent extends Component {
       });
     }
 
-    const isFiltering =
-      sourcesToDisplay.length > 0 || typesToDisplay.length > 0;
-
+    const isFiltering = sourcesAreFiltered || typesAreFiltered;
     return (
       <>
         {/* Items list */}
@@ -277,7 +267,9 @@ class ItemsComponent extends Component {
                   subItems={this.props.items.filter(
                     subItem => subItem.associatedItemId === item.id
                   )}
-                  onCompleted={item => this.props.onCompleted(item)}
+                  onChecked={(item, checked) =>
+                    this.props.onChecked(item, checked)
+                  }
                   addItem={item => this.props.addItem(item)}
                 />
               </>
@@ -341,8 +333,8 @@ class ItemComponent extends Component {
           <input
             type="checkbox"
             className="item__checkbox"
-            onChange={() => {
-              this.props.onCompleted(this.props.item);
+            onChange={event => {
+              this.props.onChecked(this.props.item, event.target.checked);
             }}
           />
           <img
@@ -406,7 +398,9 @@ class ItemComponent extends Component {
                 subItems={this.props.subItems.filter(
                   subItem => subItem.associatedItemId === item.id
                 )}
-                onCompleted={item => this.props.onCompleted(item)}
+                onChecked={(item, checked) =>
+                  this.props.onChecked(item, checked)
+                }
                 addItem={item => this.props.addItem(item)}
               />
             ))}
