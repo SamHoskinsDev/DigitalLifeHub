@@ -1,14 +1,12 @@
 .item {
   height: $item-height;
-  // margin: $item-margin;
   padding: $item-padding 1em;
   border-width: 1px;
   border-style: solid;
   border-color: black;
   border-left: $item-border-width solid black;
-  // border-radius: 0.5em;
   background-color: $item-background-color;
-  box-shadow: 3px 3px 3px darkgrey; //black;
+  box-shadow: 3px 3px 3px darkgrey;
 
   display: flex;
   flex-direction: row;
@@ -35,11 +33,9 @@
   }
 
   & > * {
-    // margin: 0 0.75em;
   }
 
   &__checkbox {
-    //padding: 1em;
   }
 
   &__source-icon {
@@ -66,7 +62,6 @@
   }
 
   &__show-items {
-    // padding: 1em;
     width: 6em;
     margin: 0 0 0 1em;
     text-align: right;
@@ -74,7 +69,6 @@
   }
 
   &__add-item {
-    // padding: 1em;
     width: 2em;
     margin: 0 0 0 1em;
     text-align: center;
@@ -88,7 +82,7 @@
   }
 
   &__sub-items {
-    margin: 0 2em;
+    margin: 0 2em 0.5em 2em;
     padding: 0;
     list-style: none;
 

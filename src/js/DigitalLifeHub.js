@@ -1,11 +1,15 @@
 import React, { Component } from "react";
 import * as Helper from "./Helper";
 import "../css/main.scss";
+import { ReactComponent as LoadingIcon } from "../assets/images/icons/loading.svg";
 import { /*Gmail,*/ getTasks as getGmailItems } from "./sources/Gmail";
 import {
   /*Wunderlist,*/ getTasks as getWunderlistItems
 } from "./sources/Wunderlist";
-import { /*Tasks,*/ getTasks } from "./sources/Tasks";
+import {
+  /*Tasks,*/ getTasks,
+  onItemChecked as onTaskItemChecked
+} from "./sources/Tasks";
 
 const Sugar = require("sugar");
 
@@ -26,6 +30,9 @@ export const ItemTypes = {
   TODO: "TODO",
   TASK: "Task"
 };
+
+const itemOrder = "DESC";
+const tasksOrder = "DESC";
 
 export class Item {
   showSubItems = false;
@@ -72,7 +79,6 @@ class DigitalLifeHub extends Component {
   displayItems() {
     if (!this.state.items) {
       this.getItems();
-      return;
     }
   }
 
@@ -113,9 +119,20 @@ class DigitalLifeHub extends Component {
   }
 
   render() {
+    // Loading
+    if (!this.state.items) {
+      return (
+        <div className="loading">
+          <div className="loading__icon">
+            <LoadingIcon />
+          </div>
+        </div>
+      );
+    }
+
+    // Regular UI
     return (
       <div className="hub">
-        <h1>Items</h1>
         <div className="filters">
           <FiltersComponent
             title="Sources"
@@ -138,7 +155,6 @@ class DigitalLifeHub extends Component {
             item.onItemChecked && item.onItemChecked(checked);
           }}
           addItem={item => {
-            // Adds a new Item
             this.state.items.push(item);
             this.forceUpdate();
           }}
@@ -190,7 +206,6 @@ class FilterComponent extends Component {
               this.props.onChange();
             }}
           />
-          {/* {this.props.filter.name} */}
           <img
             src={require(`../assets/images/icons/${sanitizedSource}.png`)}
             title={this.props.filter.name}
@@ -246,8 +261,7 @@ class ItemsComponent extends Component {
 
       // Sorts the Items
       items = items.sort(function(itemA, itemB) {
-        const order = "DESC";
-        return order === "DESC"
+        return itemOrder === "DESC"
           ? Sugar.Date.create(itemB.date) - Sugar.Date.create(itemA.date)
           : Sugar.Date.create(itemA.date) - Sugar.Date.create(itemB.date);
       });
@@ -264,9 +278,15 @@ class ItemsComponent extends Component {
                 <ItemComponent
                   key={index}
                   item={item}
-                  subItems={this.props.items.filter(
-                    subItem => subItem.associatedItemId === item.id
-                  )}
+                  subItems={this.props.items
+                    .filter(subItem => subItem.associatedItemId === item.id)
+                    .sort(function(itemA, itemB) {
+                      return tasksOrder === "DESC"
+                        ? Sugar.Date.create(itemB.date) -
+                            Sugar.Date.create(itemA.date)
+                        : Sugar.Date.create(itemA.date) -
+                            Sugar.Date.create(itemB.date);
+                    })}
                   onChecked={(item, checked) =>
                     this.props.onChecked(item, checked)
                   }
@@ -301,19 +321,33 @@ class ItemComponent extends Component {
       return;
     }
 
+    console.log("NOW", Sugar.Date.create("now").toISOString());
+
+    console.table(
+      new Item({
+        source: "Task",
+        type: ItemTypes.TASK,
+        content: task,
+        date: Sugar.Date.create("now").toISOString(),
+        associatedItemId: item.id,
+        onItemChecked: function(checked) {
+          onTaskItemChecked(this, checked);
+        }
+      })
+    );
+
     // Adds a new Item
     this.props.addItem(
-      new Item(
-        "Task",
-        ItemTypes.TASK,
-        "",
-        task,
-        "",
-        Sugar.Date.create("now"),
-        false,
-        null,
-        item.id
-      )
+      new Item({
+        source: "Task",
+        type: ItemTypes.TASK,
+        content: task,
+        date: Sugar.Date.create("now").toISOString(),
+        associatedItemId: item.id,
+        onItemChecked: function(checked) {
+          onTaskItemChecked(this, checked);
+        }
+      })
     );
   }
 
@@ -350,9 +384,11 @@ class ItemComponent extends Component {
             {this.props.item.content && (
               <span className="item__content">{this.props.item.content}</span>
             )}
+            {/* Shows the item's ID */}
             <span style={{ fontSize: "x-small" }}>
               ID: {this.props.item.id}
             </span>
+            {/**/}
           </div>
           {relativeDateTime && (
             <span className="item__date">{`${relativeDateTime} [${Sugar.Date.format(
@@ -392,12 +428,19 @@ class ItemComponent extends Component {
         {this.props.item.showSubItems && (
           <ul className="item__sub-items">
             {this.props.subItems.map((item, index) => (
+              // TODO: Find why this doesn't display sub-items for sub-items
               <ItemComponent
                 key={index}
                 item={item}
-                subItems={this.props.subItems.filter(
-                  subItem => subItem.associatedItemId === item.id
-                )}
+                subItems={this.props.subItems
+                  .filter(subItem => subItem.associatedItemId === item.id)
+                  .sort(function(itemA, itemB) {
+                    return tasksOrder === "DESC"
+                      ? Sugar.Date.create(itemB.date) -
+                          Sugar.Date.create(itemA.date)
+                      : Sugar.Date.create(itemA.date) -
+                          Sugar.Date.create(itemB.date);
+                  })}
                 onChecked={(item, checked) =>
                   this.props.onChecked(item, checked)
                 }

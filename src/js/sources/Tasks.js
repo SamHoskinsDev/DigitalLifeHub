@@ -68,7 +68,7 @@ export async function getTasks() {
   return tasks;
 }
 
-function onItemChecked(item, checked) {
+export function onItemChecked(item, checked) {
   if (!item) {
     return;
   }
