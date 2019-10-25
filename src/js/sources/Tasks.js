@@ -38,7 +38,7 @@ export async function getTasks() {
       type: ItemTypes.TASK,
       content: "Do the Gmail thing",
       date: "2019-02-14T22:43:06+0000",
-      associatedItemId: "d1d7bf74fea7330d3acf8677e9303c09",
+      associatedItemId: "e3d96143539d8109cd5c960963e03756",
       onItemChecked: function(checked) {
         onItemChecked(this, checked);
       }
@@ -48,7 +48,7 @@ export async function getTasks() {
       type: ItemTypes.TASK,
       content: "Do the Gmail thing 2",
       date: "2019-08-14T19:45:32+0000",
-      associatedItemId: "d1d7bf74fea7330d3acf8677e9303c09",
+      associatedItemId: "e3d96143539d8109cd5c960963e03756",
       onItemChecked: function(checked) {
         onItemChecked(this, checked);
       }

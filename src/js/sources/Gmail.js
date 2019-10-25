@@ -20,7 +20,9 @@ export async function getTasks() {
     new Item({
       source: "Gmail",
       type: ItemTypes.EMAIL,
-      title: "Email from person 1",
+      unread: true,
+      sender: "Person 1",
+      title: "Email from person 1 today",
       content: "Hi this is person 1",
       url: "https://www.gmail.com/email",
       date: Sugar.Date.create("now").toISOString(),
@@ -31,6 +33,21 @@ export async function getTasks() {
     new Item({
       source: "Gmail",
       type: ItemTypes.EMAIL,
+      unread: false,
+      sender: "Person 1",
+      title: "Email from person 1 yesterday",
+      content: "Hi this is person 1",
+      url: "https://www.gmail.com/email",
+      date: Sugar.Date.create("yesterday").toISOString(),
+      onItemChecked: function(checked) {
+        onItemChecked(this, checked);
+      }
+    }),
+    new Item({
+      source: "Gmail",
+      type: ItemTypes.EMAIL,
+      unread: false,
+      sender: "Crappy business",
       title: "Spam from crappy business",
       content: "Yeah it's true, we suck",
       url: "https://www.gmail.com/email",

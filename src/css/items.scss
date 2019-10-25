@@ -7,6 +7,7 @@
   border-left: $item-border-width solid black;
   background-color: $item-background-color;
   box-shadow: 3px 3px 3px darkgrey;
+  cursor: pointer;
 
   display: flex;
   flex-direction: row;
@@ -32,6 +33,10 @@
     }
   }
 
+  &:hover &__controls {
+    display: flex;
+  }
+
   & > * {
   }
 
@@ -43,6 +48,19 @@
     margin: 0 0 0 1em;
   }
 
+  &__sender {
+    width: 8em;
+    margin: 0 0 0 2em;
+    font-weight: $header--read;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    .item--unread & {
+      font-weight: $header--unread;
+    }
+  }
+
   &__details {
     flex: 1;
     margin: 0 2em;
@@ -51,29 +69,61 @@
   }
 
   &__title {
-    font-weight: bold;
+    font-weight: $header--read;
+
+    .item--unread & {
+      font-weight: $header--unread;
+    }
   }
 
   &__content {
   }
 
+  &__controls {
+    display: none;
+    flex-direction: row;
+    align-items: center;
+
+    > *:hover {
+      background: grey;
+      border-radius: 50%;
+    }
+  }
+
   &__show-items {
-    width: 6em;
+    width: 2em;
+    height: 2em;
     margin: 0 0 0 1em;
-    text-align: right;
-    cursor: pointer;
+    padding: 0.5em;
+
+    position: relative;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+  }
+
+  &__items-count {
+    font-size: larger;
+    font-weight: bold;
+
+    position: absolute;
   }
 
   &__add-item {
-    width: 2em;
+    width: 1.5em;
+    height: 1.5em;
     margin: 0 0 0 1em;
+    padding: 0.5em;
     text-align: center;
-    cursor: pointer;
   }
 
   &__url {
-    width: 2em;
+    width: 1.5em;
+    height: 1.5em;
     margin: 0 0 0 1em;
+    padding: 0.5em;
     text-align: center;
   }
 

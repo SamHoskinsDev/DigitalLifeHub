@@ -11,6 +11,7 @@ import {
   onItemChecked as onTaskItemChecked
 } from "./sources/Tasks";
 
+const classNames = require("classnames");
 const Sugar = require("sugar");
 
 /*
@@ -40,6 +41,8 @@ export class Item {
   constructor(params) {
     this.source = params.source;
     this.type = params.type;
+    this.unread = params.unread;
+    this.sender = params.sender;
     this.title = params.title;
     this.content = params.content;
     this.url = params.url;
@@ -53,7 +56,9 @@ export class Item {
 
   generateId() {
     // TODO: Make this a proper ID
-    return Helper.encrypt(`${this.source}-${this.content}-${this.timestamp}`);
+    return Helper.encrypt(
+      `${this.source}-${this.title}-${this.content}-${this.date}`
+    );
   }
 }
 
@@ -210,8 +215,7 @@ class FilterComponent extends Component {
             src={require(`../assets/images/icons/${sanitizedSource}.png`)}
             title={this.props.filter.name}
             alt={`${this.props.filter.name} icon`}
-            className={Helper.classNames({
-              "filters__filter-icon": true,
+            className={classNames("filters__filter-icon", {
               "filters__filter-icon--disabled": !this.props.filter.checked
             })}
           />
@@ -365,7 +369,7 @@ class ItemsComponent extends Component {
         {/* "No items found" output */}
         {(!items || items.length === 0) && (
           <>
-            <span>No {isFiltering ? "matching " : ""}items found</span>
+            <div>No {isFiltering ? "matching " : ""}items found</div>
           </>
         )}
       </>
@@ -409,7 +413,11 @@ class ItemComponent extends Component {
     return (
       <>
         {/* Item details */}
-        <li className={`item item--${sanitizedSource}`}>
+        <li
+          className={classNames("item", [`item--${sanitizedSource}`], {
+            "item--unread": this.props.item.unread
+          })}
+        >
           <input
             type="checkbox"
             className="item__checkbox"
@@ -423,45 +431,69 @@ class ItemComponent extends Component {
             alt={`${this.props.item.source} icon`}
             className="item__source-icon"
           />
+          {this.props.item.sender && (
+            <div className="item__sender">{this.props.item.sender}</div>
+          )}
           <div className="item__details">
             {this.props.item.title && (
-              <span className="item__title">{this.props.item.title}</span>
+              <div className="item__title">{this.props.item.title}</div>
             )}
             {this.props.item.content && (
-              <span className="item__content">{this.props.item.content}</span>
+              <div className="item__content">{this.props.item.content}</div>
             )}
             {/* Shows the item's ID
-            <span style={{ fontSize: "x-small" }}>
+            <div style={{ fontSize: "x-small" }}>
               ID: {this.props.item.id}
-            </span>
+            </div>
             */}
           </div>
-          <span
-            className="item__show-items"
-            onClick={() => {
-              this.props.item.showSubItems = !this.props.item.showSubItems;
-              this.forceUpdate();
-            }}
-          >
-            {this.props.subItems.length > 0 &&
-              `${this.props.subItems.length} task${
-                this.props.subItems.length !== 1 ? "s" : ""
-              } ${this.props.item.showSubItems ? "^" : "v"}`}
-          </span>
-          <span
-            className="item__add-item"
-            onClick={() => this.addItem(this.props.item)}
-          >
-            +
-          </span>
-          <a
-            href={this.props.item.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="item__url"
-          >
-            {this.props.item.url ? ">" : ""}
-          </a>
+          <div className="item__controls">
+            <div
+              className="item__show-items"
+              onClick={() => {
+                this.props.item.showSubItems = !this.props.item.showSubItems;
+                this.forceUpdate();
+              }}
+            >
+              {this.props.subItems.length > 0 && (
+                <>
+                  <img
+                    src={require(`../assets/images/icons/check_light.png`)}
+                    title="Tasks"
+                    alt="Tasks"
+                  />
+                  <div className="item__items-count">
+                    {this.props.subItems.length}
+                  </div>
+                </>
+              )}
+            </div>
+            <div
+              className="item__add-item"
+              onClick={() => this.addItem(this.props.item)}
+            >
+              <img
+                src={require(`../assets/images/icons/plus_light.png`)}
+                title="Add task"
+                alt="Add task"
+              />
+            </div>
+            <div className="item__url">
+              <a
+                href={this.props.item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {this.props.item.url && (
+                  <img
+                    src={require(`../assets/images/icons/open-in-new_light.png`)}
+                    title="Open link"
+                    alt="Open link"
+                  />
+                )}
+              </a>
+            </div>
+          </div>
         </li>
 
         {/* Sub items */}
