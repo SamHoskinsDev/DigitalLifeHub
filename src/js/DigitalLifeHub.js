@@ -7,8 +7,10 @@ import {
   /*Wunderlist,*/ getTasks as getWunderlistItems
 } from "./sources/Wunderlist";
 import {
-  /*Tasks,*/ getTasks,
-  onItemChecked as onTaskItemChecked
+  //Tasks,
+  getTasks,
+  createTask
+  //onItemChecked as onTaskItemChecked
 } from "./sources/Tasks";
 
 const classNames = require("classnames");
@@ -390,7 +392,7 @@ class ItemsComponent extends Component {
 }
 
 class ItemComponent extends Component {
-  addItem(item) {
+  async addItem(item) {
     // Prompts the user to enter a item
     let task = window.prompt(`${item.source} - Add item`);
 
@@ -402,19 +404,19 @@ class ItemComponent extends Component {
       return;
     }
 
-    // Adds a new Item
-    this.props.addItem(
+    const newItem = await createTask(
       new Item({
         source: "Task",
         type: ItemTypes.TASK,
         content: task,
         date: Sugar.Date.create("now").toISOString(),
-        associatedItemId: item.id,
-        onItemChecked: function(checked) {
-          onTaskItemChecked(this, checked);
-        }
+        associatedItemId: item.id
       })
     );
+    console.log(newItem);
+
+    // Adds a new Item
+    //this.props.addItem(newItem);
   }
 
   render() {
