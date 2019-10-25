@@ -2,7 +2,7 @@ import React from "react";
 import { Item, ItemTypes } from "../DigitalLifeHub";
 
 const apiRootURL = "https://digitallifehub-f9b6.restdb.io/rest/tasks";
-// const apiKey = "5db332537db96665d0675082";
+const apiKey = "5db332537db96665d0675082"; // Full access: "4d64d69d0deb90ede169feb31b71329d8925e"
 
 function Tasks() {
   return (
@@ -15,11 +15,10 @@ function Tasks() {
 export async function getTasks() {
   // Gets all tasks from the database
   return await fetch(apiRootURL, {
-    mode: "cors",
     method: "GET",
     headers: {
       "cache-control": "no-cache",
-      "x-apikey": "4d64d69d0deb90ede169feb31b71329d8925e"
+      "x-apikey": apiKey
     }
   })
     .then(function(response) {
@@ -48,34 +47,28 @@ export async function getTasks() {
     })
     .catch(function(error) {
       console.log("error", error);
+      return [];
     });
 }
 
 export async function createTask(task) {
   // Adds an item to the database
   return await fetch(apiRootURL, {
-    mode: "cors",
     method: "POST",
     headers: {
       "cache-control": "no-cache",
-      "x-apikey": "4d64d69d0deb90ede169feb31b71329d8925e",
+      "x-apikey": apiKey,
       "content-type": "application/json"
     },
-    json: true,
-    // TODO: This seems to be the incorrect way of doing this, and https://digitallifehub-f9b6.restdb.io/home/ is down now(?)
-    body: {
+    body: JSON.stringify({
       content: task.content,
       date: task.date,
       associated_item_id: task.associatedItemId,
       completed: task.completed
-    }
+    })
   })
     .then(function(response) {
-      return response.json();
-    })
-    .then(function(response) {
-      // TODO: TEST
-      if (response && response.id) {
+      if (response && response.ok) {
         task.onItemChecked = function(checked) {
           onItemChecked(this, checked);
         };

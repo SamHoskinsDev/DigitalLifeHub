@@ -404,6 +404,8 @@ class ItemComponent extends Component {
       return;
     }
 
+    // TODO: Change the logic here to so that the item gets added locally, then added online, but then removed locally if the online adding fails
+
     const newItem = await createTask(
       new Item({
         source: "Task",
@@ -413,10 +415,14 @@ class ItemComponent extends Component {
         associatedItemId: item.id
       })
     );
-    console.log(newItem);
+
+    if (!newItem) {
+      alert("There was a problem creating your task, please try again");
+      return;
+    }
 
     // Adds a new Item
-    //this.props.addItem(newItem);
+    this.props.addItem(newItem);
   }
 
   render() {
