@@ -1,7 +1,14 @@
 import React from "react";
 import { Item, ItemTypes } from "../DigitalLifeHub";
 
-// TODO: Fill this component like Wunderlist.js
+const apiOptions = {
+  mode: "cors",
+  method: "GET",
+  headers: {
+    "cache-control": "no-cache",
+    "x-apikey": "4d64d69d0deb90ede169feb31b71329d8925e"
+  }
+};
 
 function Tasks() {
   return (
@@ -12,60 +19,37 @@ function Tasks() {
 }
 
 export async function getTasks() {
-  const tasks = [];
-
-  tasks.push(
-    new Item({
-      source: "Task",
-      type: ItemTypes.TASK,
-      content: "Do the thing",
-      date: "2019-03-14T22:43:25+0000",
-      onItemChecked: function(checked) {
-        onItemChecked(this, checked);
-      }
-    }),
-    new Item({
-      source: "Task",
-      type: ItemTypes.TASK,
-      content: "Do the other thing",
-      date: "2019-07-14T22:43:59+0000",
-      onItemChecked: function(checked) {
-        onItemChecked(this, checked);
-      }
-    }),
-    new Item({
-      source: "Task",
-      type: ItemTypes.TASK,
-      content: "Do the Gmail thing",
-      date: "2019-02-14T22:43:06+0000",
-      associatedItemId: "e3d96143539d8109cd5c960963e03756",
-      onItemChecked: function(checked) {
-        onItemChecked(this, checked);
-      }
-    }),
-    new Item({
-      source: "Task",
-      type: ItemTypes.TASK,
-      content: "Do the Gmail thing 2",
-      date: "2019-08-14T19:45:32+0000",
-      associatedItemId: "e3d96143539d8109cd5c960963e03756",
-      onItemChecked: function(checked) {
-        onItemChecked(this, checked);
-      }
-    }),
-    new Item({
-      source: "Task",
-      type: ItemTypes.TASK,
-      content: "Do the Wunderlist thing",
-      date: "2019-06-14T22:43:45+0000",
-      associatedItemId: "4d6d1da1",
-      onItemChecked: function(checked) {
-        onItemChecked(this, checked);
-      }
+  // Gets all tasks from the database
+  return await fetch(
+    "https://digitallifehub-f9b6.restdb.io/rest/tasks",
+    apiOptions
+  )
+    .then(function(response) {
+      return response.json();
     })
-  );
+    .then(function(tasksJSON) {
+      const tasks = [];
 
-  return tasks;
+      tasksJSON.forEach(function(taskJSON) {
+        tasks.push(
+          new Item({
+            source: "Task",
+            type: ItemTypes.TASK,
+            content: taskJSON.content,
+            date: taskJSON.date,
+            associatedItemId: taskJSON.associated_item_id,
+            onItemChecked: function(checked) {
+              onItemChecked(this, checked);
+            }
+          })
+        );
+      });
+
+      return tasks;
+    })
+    .catch(function(error) {
+      console.log("error", error);
+    });
 }
 
 export function onItemChecked(item, checked) {

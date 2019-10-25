@@ -166,6 +166,18 @@ class DigitalLifeHub extends Component {
         />
 
         {/* <Wunderlist /> */}
+        <img
+          src={`https://cataas.com/cat?${Helper.generateUniqueId()}`}
+          alt="Random cat"
+          title="Random cat"
+          style={{
+            width: "auto",
+            height: "250px",
+            position: "absolute",
+            top: 0,
+            right: 0
+          }}
+        />
       </div>
     );
   }
@@ -441,12 +453,9 @@ class ItemComponent extends Component {
             {this.props.item.content && (
               <div className="item__content">{this.props.item.content}</div>
             )}
-            {/* Shows the item's ID
-            <div style={{ fontSize: "x-small" }}>
-              ID: {this.props.item.id}
-            </div>
-            */}
+            {/* <div style={{ fontSize: "x-small" }}>ID: {this.props.item.id}</div> */}
           </div>
+          {/* TODO: Change this logic so that the subitems item always shows, but on the far-right side */}
           <div className="item__controls">
             <div
               className="item__show-items"
