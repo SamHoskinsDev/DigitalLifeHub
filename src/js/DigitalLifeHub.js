@@ -249,6 +249,7 @@ class ItemsComponent extends Component {
       });
     }
 
+    const itemsByDateRange = [];
     let items = this.props.items;
     if (items) {
       // Filters Items based on the selected filters, also filtering out tasks that have an associated item
@@ -265,37 +266,101 @@ class ItemsComponent extends Component {
           ? Sugar.Date.create(itemB.date) - Sugar.Date.create(itemA.date)
           : Sugar.Date.create(itemA.date) - Sugar.Date.create(itemB.date);
       });
+
+      // Builds an array of Items split by their collective dates (e.g. "Today", "Yesterday", "March 2019", etc)
+      items.forEach(item => {
+        const sugarDate = Sugar.Date.create(item.date);
+        if (Sugar.Date.isTomorrow(sugarDate)) {
+          if (!itemsByDateRange["Tomorrow"]) {
+            itemsByDateRange["Tomorrow"] = [];
+          }
+          itemsByDateRange["Tomorrow"].push(item);
+          return;
+        }
+
+        if (Sugar.Date.isToday(sugarDate)) {
+          if (!itemsByDateRange["Today"]) {
+            itemsByDateRange["Today"] = [];
+          }
+          itemsByDateRange["Today"].push(item);
+          return;
+        }
+
+        if (Sugar.Date.isYesterday(sugarDate)) {
+          if (!itemsByDateRange["Yesterday"]) {
+            itemsByDateRange["Yesterday"] = [];
+          }
+          itemsByDateRange["Yesterday"].push(item);
+          return;
+        }
+
+        const monthYear = Sugar.Date.format(sugarDate, "{Month} {yyyy}");
+        if (!itemsByDateRange[monthYear]) {
+          itemsByDateRange[monthYear] = [];
+        }
+        itemsByDateRange[monthYear].push(item);
+      });
     }
 
     const isFiltering = sourcesAreFiltered || typesAreFiltered;
     return (
       <>
-        {/* Items list */}
-        {items && items.length > 0 && (
+        {/* Items list, by date range */}
+        {itemsByDateRange && Object.keys(itemsByDateRange).length > 0 && (
           <ul className="items">
-            {items.map((item, index) => (
-              <>
-                <ItemComponent
-                  key={index}
-                  item={item}
-                  subItems={this.props.items
-                    .filter(subItem => subItem.associatedItemId === item.id)
-                    .sort(function(itemA, itemB) {
-                      return tasksOrder === "DESC"
-                        ? Sugar.Date.create(itemB.date) -
-                            Sugar.Date.create(itemA.date)
-                        : Sugar.Date.create(itemA.date) -
-                            Sugar.Date.create(itemB.date);
-                    })}
-                  onChecked={(item, checked) =>
-                    this.props.onChecked(item, checked)
-                  }
-                  addItem={item => this.props.addItem(item)}
-                />
-              </>
+            {Object.keys(itemsByDateRange).map((itemsDate, index) => (
+              <div key={index} className="items-for-date">
+                <h3 key={index}>{itemsDate}</h3>
+                {itemsByDateRange[itemsDate].map((item, index) => (
+                  <ItemComponent
+                    key={index}
+                    item={item}
+                    subItems={this.props.items
+                      .filter(subItem => subItem.associatedItemId === item.id)
+                      .sort(function(itemA, itemB) {
+                        return tasksOrder === "DESC"
+                          ? Sugar.Date.create(itemB.date) -
+                              Sugar.Date.create(itemA.date)
+                          : Sugar.Date.create(itemA.date) -
+                              Sugar.Date.create(itemB.date);
+                      })}
+                    onChecked={(item, checked) =>
+                      this.props.onChecked(item, checked)
+                    }
+                    addItem={item => this.props.addItem(item)}
+                  />
+                ))}
+              </div>
             ))}
           </ul>
         )}
+
+        {/* Items list */}
+        {/*
+          items && items.length > 0 && (
+          <ul className="items">
+            {items.map((item, index) => (
+              <ItemComponent
+                key={index}
+                item={item}
+                subItems={this.props.items
+                  .filter(subItem => subItem.associatedItemId === item.id)
+                  .sort(function(itemA, itemB) {
+                    return tasksOrder === "DESC"
+                      ? Sugar.Date.create(itemB.date) -
+                          Sugar.Date.create(itemA.date)
+                      : Sugar.Date.create(itemA.date) -
+                          Sugar.Date.create(itemB.date);
+                  })}
+                onChecked={(item, checked) =>
+                  this.props.onChecked(item, checked)
+                }
+                addItem={item => this.props.addItem(item)}
+              />
+            ))}
+          </ul>
+        )
+        */}
 
         {/* "No items found" output */}
         {(!items || items.length === 0) && (
@@ -321,21 +386,6 @@ class ItemComponent extends Component {
       return;
     }
 
-    console.log("NOW", Sugar.Date.create("now").toISOString());
-
-    console.table(
-      new Item({
-        source: "Task",
-        type: ItemTypes.TASK,
-        content: task,
-        date: Sugar.Date.create("now").toISOString(),
-        associatedItemId: item.id,
-        onItemChecked: function(checked) {
-          onTaskItemChecked(this, checked);
-        }
-      })
-    );
-
     // Adds a new Item
     this.props.addItem(
       new Item({
@@ -353,12 +403,8 @@ class ItemComponent extends Component {
 
   render() {
     const sanitizedSource = Helper.toDashedLower(this.props.item.source);
-    const itemDateTime = this.props.item.date
-      ? Sugar.Date.create(this.props.item.date)
-      : null;
-    const relativeDateTime = itemDateTime
-      ? Sugar.Date.relative(itemDateTime)
-      : null;
+    //const itemDateTime = this.props.item.date ? Sugar.Date.create(this.props.item.date) : null;
+    //const relativeDateTime = itemDateTime ? Sugar.Date.relative(itemDateTime) : null;
 
     return (
       <>
@@ -384,18 +430,12 @@ class ItemComponent extends Component {
             {this.props.item.content && (
               <span className="item__content">{this.props.item.content}</span>
             )}
-            {/* Shows the item's ID */}
+            {/* Shows the item's ID
             <span style={{ fontSize: "x-small" }}>
               ID: {this.props.item.id}
             </span>
-            {/**/}
+            */}
           </div>
-          {relativeDateTime && (
-            <span className="item__date">{`${relativeDateTime} [${Sugar.Date.format(
-              itemDateTime,
-              "{dd}/{MM}"
-            )}]`}</span>
-          )}
           <span
             className="item__show-items"
             onClick={() => {

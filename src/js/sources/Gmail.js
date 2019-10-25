@@ -1,6 +1,8 @@
 import React from "react";
 import { Item, ItemTypes } from "../DigitalLifeHub";
 
+const Sugar = require("sugar");
+
 // TODO: Fill this component like Wunderlist.js
 
 function Gmail() {
@@ -21,7 +23,7 @@ export async function getTasks() {
       title: "Email from person 1",
       content: "Hi this is person 1",
       url: "https://www.gmail.com/email",
-      date: "2019-01-14T22:42:28+0000",
+      date: Sugar.Date.create("now").toISOString(),
       onItemChecked: function(checked) {
         onItemChecked(this, checked);
       }
