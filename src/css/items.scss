@@ -5,13 +5,25 @@
   border-style: solid;
   border-color: black;
   border-left: $item-border-width solid black;
-  background-color: $item-background-color;
   box-shadow: 3px 3px 3px darkgrey;
   cursor: pointer;
+  color: black;
 
   display: flex;
   flex-direction: row;
   align-items: center;
+
+  @include theme--basic {
+    background-color: lightgrey;
+  }
+
+  @include theme--halloween {
+    background-color: $halloween-orange;
+  }
+
+  @include theme--christmas {
+    background-color: $christmas-red-dark;
+  }
 
   &:hover {
     border-color: black;

@@ -1,3 +1,7 @@
+$theme: "halloween";
+
+@import "./variables.scss";
+
 .App {
   text-align: center;
 }
@@ -32,10 +36,38 @@
   }
 }
 
+@mixin theme--basic {
+  @if $theme == "basic" {
+    @content;
+  }
+}
+@mixin theme--halloween {
+  @if $theme == "halloween" {
+    @content;
+  }
+}
+@mixin theme--christmas {
+  @if $theme == "christmas" {
+    @content;
+  }
+}
+
 body {
   margin: 0;
   padding: 0;
-  background: whitesmoke;
+
+  @include theme--basic {
+    background-color: whitesmoke;
+  }
+
+  @include theme--halloween {
+    background-color: $halloween-grey-dark;
+    color: white;
+  }
+
+  @include theme--christmas {
+    background-color: $christmas-green-light;
+  }
 }
 
 img {
@@ -48,7 +80,6 @@ img {
   list-style: none;
 }
 
-@import "./variables.scss";
 @import "./loading.scss";
 @import "./hub.scss";
 @import "./filters.scss";
