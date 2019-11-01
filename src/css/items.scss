@@ -52,12 +52,19 @@
   & > * {
   }
 
+  &__source-check {
+    width: 2.5em;
+    height: 2.5em;
+    display: flex;
+    align-items: center;
+  }
+
   &__checkbox {
+    display: none;
   }
 
   &__source-icon {
-    width: $item-source-icon-width;
-    margin: 0 0 0 1em;
+    // margin: 0 0 0 1em;
   }
 
   &__sender {
@@ -96,18 +103,21 @@
     flex-direction: row;
     align-items: center;
 
+    > * {
+      width: 1.5em;
+      height: 1.5em;
+      margin: 0 0 0 1em;
+      padding: 0.5em;
+      text-align: center;
+    }
+
     > *:hover {
-      background: grey;
+      background: #00000038;
       border-radius: 50%;
     }
   }
 
   &__show-items {
-    width: 2em;
-    height: 2em;
-    margin: 0 0 0 1em;
-    padding: 0.5em;
-
     position: relative;
 
     display: flex;
@@ -123,20 +133,11 @@
     position: absolute;
   }
 
-  &__add-item {
-    width: 1.5em;
-    height: 1.5em;
-    margin: 0 0 0 1em;
-    padding: 0.5em;
-    text-align: center;
+  &__add-item:last-child {
+    margin-right: 3.5em;
   }
 
   &__url {
-    width: 1.5em;
-    height: 1.5em;
-    margin: 0 0 0 1em;
-    padding: 0.5em;
-    text-align: center;
   }
 
   &__sub-items {

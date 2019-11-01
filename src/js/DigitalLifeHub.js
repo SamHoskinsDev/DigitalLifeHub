@@ -438,19 +438,22 @@ class ItemComponent extends Component {
             "item--unread": this.props.item.unread
           })}
         >
-          <input
-            type="checkbox"
-            className="item__checkbox"
-            onChange={event => {
-              this.props.onChecked(this.props.item, event.target.checked);
-            }}
-          />
-          <img
-            src={require(`../assets/images/icons/${sanitizedSource}.png`)}
-            title={this.props.item.source}
-            alt={`${this.props.item.source} icon`}
-            className="item__source-icon"
-          />
+          <label class="item__source-check">
+            <input
+              type="checkbox"
+              className="item__checkbox"
+              onChange={event => {
+                this.props.onChecked(this.props.item, event.target.checked);
+              }}
+            />
+            {/* TODO: When the item is checked, change this to display a nicely-styled checked checkbox */}
+            <img
+              src={require(`../assets/images/icons/${sanitizedSource}.png`)}
+              title={this.props.item.source}
+              alt={`${this.props.item.source} icon`}
+              className="item__source-icon"
+            />
+          </label>
           {this.props.item.sender && (
             <div className="item__sender">{this.props.item.sender}</div>
           )}
@@ -463,28 +466,25 @@ class ItemComponent extends Component {
             )}
             {/* <div style={{ fontSize: "x-small" }}>ID: {this.props.item.id}</div> */}
           </div>
-          {/* TODO: Change this logic so that the subitems item always shows, but on the far-right side */}
           <div className="item__controls">
-            <div
-              className="item__show-items"
-              onClick={() => {
-                this.props.item.showSubItems = !this.props.item.showSubItems;
-                this.forceUpdate();
-              }}
-            >
-              {this.props.subItems.length > 0 && (
-                <>
-                  <img
-                    src={require(`../assets/images/icons/check_light.png`)}
-                    title="Tasks"
-                    alt="Tasks"
-                  />
-                  <div className="item__items-count">
-                    {this.props.subItems.length}
-                  </div>
-                </>
-              )}
-            </div>
+            {this.props.subItems.length > 0 && (
+              <div
+                className="item__show-items"
+                onClick={() => {
+                  this.props.item.showSubItems = !this.props.item.showSubItems;
+                  this.forceUpdate();
+                }}
+              >
+                <img
+                  src={require(`../assets/images/icons/check_light.png`)}
+                  title="Tasks"
+                  alt="Tasks"
+                />
+                <div className="item__items-count">
+                  {this.props.subItems.length}
+                </div>
+              </div>
+            )}
             <div
               className="item__add-item"
               onClick={() => this.addItem(this.props.item)}
@@ -495,21 +495,21 @@ class ItemComponent extends Component {
                 alt="Add task"
               />
             </div>
-            <div className="item__url">
-              <a
-                href={this.props.item.url}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {this.props.item.url && (
+            {this.props.item.url && (
+              <div className="item__url">
+                <a
+                  href={this.props.item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <img
                     src={require(`../assets/images/icons/open-in-new_light.png`)}
                     title="Open link"
                     alt="Open link"
                   />
-                )}
-              </a>
-            </div>
+                </a>
+              </div>
+            )}
           </div>
         </li>
 
